@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { Button } from 'primevue/button';
+import Button from 'primevue/button';
 
 // Navigation placeholder functions
 function goToLogin(role) {

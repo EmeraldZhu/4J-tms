@@ -1,9 +1,10 @@
 <script setup>
-
 </script>
 
 <template>
-Hello, World  
+    <div id="app">
+        <router-view></router-view>
+    </div>
 </template>
 
 <style scoped>
