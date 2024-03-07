@@ -49,7 +49,7 @@ const router = useRouter();
 function goToLogin(role) {
   if (role === 'owner') {
     // Navigate to the landlord login page
-    router.push('/login/landlord');
+    router.push('/login/owner');
   } else if (role === 'tenant') {
     // Navigate to the tenant login page
     router.push('/login/tenant');
