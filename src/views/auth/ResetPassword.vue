@@ -1,14 +1,19 @@
 <template>
-  <div class="reset-password-container">
-    <h1>Reset Your Password</h1>
-    <p>Enter your email address below, and we'll send you a link to reset your password.</p>
-    <form @submit.prevent="sendResetLink">
-      <div class="p-field">
-        <label for="email">Email</label>
-        <InputText id="email" v-model="email" placeholder="Enter your email" required />
+  <div class="reset-password-page">
+    <div class="reset-password-card">
+      <div class="icon-container">
+        <span class="pi pi-lock" style="font-size: 3rem"></span>
       </div>
-      <Button label="Send Reset Link" class="p-button-rounded p-button-info" />
-    </form>
+      <h2>Forgot Password?</h2>
+      <p>Enter your email address and we'll send you a link to reset your password.</p>
+      <form @submit.prevent="sendResetLink" class="reset-password-form">
+        <InputText id="email" v-model="email" placeholder="Email *" required />
+        <Button label="SUBMIT" class="submit-button" />
+        <router-link to="/register/owner" class="register-link">Create new account? Register</router-link>
+        <div class="divider"></div>
+        <router-link to="/login/owner" class="back-link">BACK TO LOGIN</router-link>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -18,6 +23,7 @@ import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import 'primeicons/primeicons.css';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 
 const auth = getAuth();
@@ -39,22 +45,59 @@ const sendResetLink = async () => {
 </script>
 
 <style scoped>
-.reset-password-container {
+.reset-password-page {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
-  max-width: 400px;
-  margin: auto;
   height: 100vh;
+  background: #f5f5f5; /* This color should match your design background */
 }
 
-.p-field {
+.reset-password-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 700px;
+}
+
+.icon-container {
   margin-bottom: 1rem;
 }
 
-.p-button-info {
-  margin-top: 1rem;
+.reset-password-form .p-inputtext {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.submit-button {
+  width: 100%;
+  background-color: #6244da; /* Adjust the color to match your design */
+  border: none;
+  margin-bottom: 1rem;
+}
+
+.submit-button:enabled:hover {
+  background-color: #5434c8; /* A darker shade for hover state */
+}
+
+.register-link {
+  color: #6244da; /* Adjust the color to match your design */
+  text-decoration: none;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.divider {
+  border-top: 1px solid #ddd; /* Light divider line */
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  color: #6244da; /* Adjust the color to match your design */
+  text-decoration: none;
+  display: block;
 }
 </style>
