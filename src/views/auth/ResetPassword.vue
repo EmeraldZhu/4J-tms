@@ -2,7 +2,7 @@
   <div class="reset-password-container">
     <h1>Reset Your Password</h1>
     <p>Enter your email address below, and we'll send you a link to reset your password.</p>
-    <form @submit.prevent="sendPasswordResetEmail">
+    <form @submit.prevent="sendResetLink">
       <div class="p-field">
         <label for="email">Email</label>
         <InputText id="email" v-model="email" placeholder="Enter your email" required />
@@ -25,7 +25,7 @@ const email = ref('');
 const router = useRouter();
 const store = useStore(); // if you need to use Vuex for some reason
 
-const sendPasswordResetEmail = async () => {
+const sendResetLink = async () => {
   try {
     await sendPasswordResetEmail(auth, email.value);
     console.log('Reset link sent to:', email.value);
