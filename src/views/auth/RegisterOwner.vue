@@ -29,11 +29,11 @@
         </div>
         <div class="p-field">
           <label for="profileImage">Upload Profile Images</label>
-          <FileUpload id="profileImage" mode="basic" name="profileImage" accept="image/*" maxFileSize="3670016" @upload="onFileSelected"/>
+          <FileUpload id="profileImage" mode="basic" name="profileImage" accept="image/*" :maxFileSize="3670016" @upload="onFileSelected"/>
         </div>
         <div class="p-field">
           <label for="password">Password*</label>
-          <Password id="password" v-model="landlord.password" required toggleMask feedback={false} />
+          <Password id="password" v-model="landlord.password" required toggleMask :feedback="false" />
         </div>
         <Button label="Register" class="p-button-success" />
       </form>
