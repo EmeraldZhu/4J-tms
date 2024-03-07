@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router';
-import store from './store';
 import firebaseConfig from './services/firebase-config';
+import router from './router';
+import { store } from './store';
 import PrimeVue from 'primevue/config';
 
 import 'primevue/resources/themes/saga-blue/theme.css' // Theme
