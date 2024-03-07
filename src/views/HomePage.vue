@@ -41,17 +41,26 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 
-// Navigation placeholder functions
+const router = useRouter();
+
 function goToLogin(role) {
-  // Here you will add logic to redirect to the login page
-  console.log(`Navigate to ${role} Login`);
+  if (role === 'owner') {
+    // Navigate to the landlord login page
+    router.push('/login/landlord');
+  } else if (role === 'tenant') {
+    // Navigate to the tenant login page
+    router.push('/login/tenant');
+  }
 }
 
 function goToRegister(role) {
-  // Here you will add logic to redirect to the registration page
-  console.log(`Navigate to ${role} Register`);
+  if (role === 'owner') {
+    // Navigate to the landlord register page
+    router.push('/register/owner');
+  }
 }
 </script>
 
