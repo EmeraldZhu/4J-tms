@@ -33,7 +33,7 @@
         </div>
         <div class="p-field">
           <label for="password">Password*</label>
-          <Password id="password" v-model="landlord.password" required toggleMask :feedback="false" />
+          <Password id="password" v-model="landlord.password" required toggleMask :feedback="true" />
         </div>
         <Button label="Register" class="p-button-success" />
       </form>
