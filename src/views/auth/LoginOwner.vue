@@ -11,7 +11,7 @@
         </div>
         <Button label="LOGIN" class="login-button" />
         <div class="login-footer">
-          <router-link to="/reset-password" class="forgot-password">Forgot Password?</router-link>
+          <router-link to="/reset-password/owner" class="forgot-password">Forgot Password?</router-link>
           <router-link to="/register/owner" class="register-link">Don't have an account? Register</router-link>
         </div>
       </form>
