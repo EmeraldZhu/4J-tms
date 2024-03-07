@@ -8,7 +8,7 @@
       <p>Enter your email address and we'll send you a link to reset your password.</p>
       <form @submit.prevent="sendResetLink" class="reset-password-form">
         <InputText id="email" v-model="email" placeholder="Email *" required />
-        <Button label="SUBMIT" class="submit-button" />
+        <Button type="submit" label="SUBMIT" class="submit-button" />
         <router-link to="/register/owner" class="register-link">Create new account? Register</router-link>
         <div class="divider"></div>
         <router-link to="/login/owner" class="back-link">BACK TO LOGIN</router-link>

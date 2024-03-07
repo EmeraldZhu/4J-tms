@@ -9,7 +9,7 @@
         <div class="p-field">
           <Password id="password" v-model="credentials.password" placeholder="Password" required toggleMask :feedback="false" />
         </div>
-        <Button label="LOGIN" class="login-button" />
+        <Button type="submit" label="LOGIN" class="login-button" />
         <div class="login-footer">
           <router-link to="/reset-password/owner" class="forgot-password">Forgot Password?</router-link>
           <router-link to="/register/owner" class="register-link">Don't have an account? Register</router-link>
