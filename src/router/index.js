@@ -2,6 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
 import RegisterOwner from '../views/auth/RegisterOwner.vue';
+import LoginOwner from '../views/auth/LoginOwner.vue';
 
 const routes = [
   {
@@ -14,6 +15,11 @@ const routes = [
     name: 'RegisterOwner',
     component: RegisterOwner,
   },
+  {
+    path: '/login/owner',
+    name: 'LoginOwner',
+    component: LoginOwner,
+  }
   // ... your other routes
 ];
 
