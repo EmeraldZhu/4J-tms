@@ -1,7 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
-import RegisterOwner from '../views/RegisterOwner.vue';
+import RegisterOwner from '../views/auth/RegisterOwner.vue';
 
 const routes = [
   {
