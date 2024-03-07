@@ -38,7 +38,7 @@
         <Button label="Register" class="p-button-success" />
       </form>
       <p class="login-link">
-        Already have an account? <router-link to="/login/landlord">Login</router-link>
+        Already have an account? <router-link to="/login/owner">Login</router-link>
       </p>
     </div>
   </div>
@@ -81,7 +81,7 @@ const registerLandlord = async () => {
     await store.dispatch('registerLandlord', { ...landlord.value });
 
     // Redirect after successful registration
-    router.push('/login/landlord');
+    router.push('/login/owner');
   } catch (error) {
     console.error('Registration error:', error.message);
     // Handle errors appropriately (e.g., show error message to the user)
