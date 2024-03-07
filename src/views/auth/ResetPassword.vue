@@ -1,5 +1,6 @@
 <template>
   <div class="reset-password-page">
+    <Toast />
     <div class="reset-password-card">
       <div class="icon-container">
         <span class="pi pi-lock" style="font-size: 3rem"></span>
@@ -21,6 +22,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import Toast from 'primevue/toast'; // Import Toast component
+import { useToast } from 'primevue/usetoast'; // Import useToast hook
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import 'primeicons/primeicons.css';
@@ -30,16 +33,22 @@ const auth = getAuth();
 const email = ref('');
 const router = useRouter();
 const store = useStore(); // if you need to use Vuex for some reason
+const toast = useToast(); // Instantiate the toast
 
 const sendResetLink = async () => {
   try {
     await sendPasswordResetEmail(auth, email.value);
+    // Display a success toast message
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Reset link sent to your email address.', life: 3000 });
     console.log('Reset link sent to:', email.value);
-    // Show success message and potentially navigate the user to the login page
-    router.push('/login/owner');
+    // Optionally navigate the user to the login page after showing the message
+    setTimeout(() => {
+      router.push('/login/owner');
+    }, 3200); // Waits a bit longer than the toast life to navigate
   } catch (error) {
     console.error('Error sending reset email:', error.message);
-    // Handle errors, such as invalid email, etc.
+    // Display an error toast message
+    toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 5000 });
   }
 };
 </script>
