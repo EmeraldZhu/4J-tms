@@ -35,7 +35,7 @@
           <label for="password">Password*</label>
           <Password id="password" v-model="landlord.password" required toggleMask :feedback="true" />
         </div>
-        <Button label="Register" class="p-button-success" />
+        <Button type="submit" label="Register" class="p-button-success" />
       </form>
       <p class="login-link">
         Already have an account? <router-link to="/login/owner">Login</router-link>
