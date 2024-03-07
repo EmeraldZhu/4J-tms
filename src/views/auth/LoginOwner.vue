@@ -33,7 +33,6 @@ import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import Button from 'primevue/button';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import Toast from 'primevue/toast';
 
 const auth = getAuth();
 const store = useStore();
@@ -52,8 +51,9 @@ const login = async () => {
     toast.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome!', life: 3000 });
     // Assuming you have a Vuex mutation to set the user
     store.commit('setUser', userCredential.user);
-    // Redirect to the landlord dashboard
-    router.push('/dashboard/owner');
+    setTimeout(() => {
+      router.push('/dashboard/owner');
+    }, 3200); // Waits a bit longer than the toast life to navigate
   } catch (error) {
     console.error('Login error:', error.message);
     // Display an error toast message
