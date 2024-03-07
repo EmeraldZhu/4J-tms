@@ -1,5 +1,6 @@
 <template>
   <div class="login-page">
+    <Toast />
     <div class="login-form-container">
       <h1 class="login-title">Login To Your Account</h1>
       <form @submit.prevent="login" class="login-form">
@@ -17,7 +18,6 @@
       </form>
     </div>
     <div class="login-image">
-      <!-- Add your login image here -->
       <img src="../../assets/login-image.svg" alt="Login" />
     </div>
   </div>
@@ -27,14 +27,18 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import Toast from 'primevue/toast'; // Import Toast component
+import { useToast } from 'primevue/usetoast'; // Import useToast hook
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import Button from 'primevue/button';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import Toast from 'primevue/toast';
 
 const auth = getAuth();
 const store = useStore();
 const router = useRouter();
+const toast = useToast(); // Instantiate the toast
 
 const credentials = ref({
   email: '',
@@ -44,13 +48,16 @@ const credentials = ref({
 const login = async () => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, credentials.value.email, credentials.value.password);
+    // Display a success toast message
+    toast.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome!', life: 3000 });
     // Assuming you have a Vuex mutation to set the user
     store.commit('setUser', userCredential.user);
     // Redirect to the landlord dashboard
     router.push('/dashboard/owner');
   } catch (error) {
     console.error('Login error:', error.message);
-    // Handle errors appropriately (e.g., show an error message)
+    // Display an error toast message
+    toast.add({ severity: 'error', summary: 'Login Failed', detail: error.message, life: 5000 });
   }
 };
 </script>
