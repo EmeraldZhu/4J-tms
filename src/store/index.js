@@ -21,7 +21,6 @@ export const store = createStore({
   },
   actions: {
     async registerLandlord({ commit }, payload) {
-      console.log(payload); // Log the payload
       try {
         console.log(payload); // Log the payload
         // Destructure the payload to extract the image file and other user details
@@ -56,7 +55,7 @@ export const store = createStore({
         await setDoc(doc(db, 'landlords', user.uid), userData);
 
         // Commit the user to Vuex state
-        commit('setUser', { uid: user.uid, email, ...userData });
+        commit('setUser', { uid: user.uid, email, ...userData, photoURL: imageUrl });
       } catch (error) {
         console.error('Registration error:', error.message);
         throw error; // Propagate the error to be handled by the component
