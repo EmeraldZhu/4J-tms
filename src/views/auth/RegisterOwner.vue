@@ -29,7 +29,7 @@
         </div>
         <div class="p-field">
           <label for="profileImage">Upload Profile Images</label>
-          <FileUpload id="profileImage" mode="basic" name="profileImage" accept="image/*" :maxFileSize="3670016" @file-select="onFileSelected"/>
+          <FileUpload id="profileImage" name="profileImage" accept="image/*" :maxFileSize="3670016" :auto="false" customUpload @uploader="onFileSelected"/>
         </div>
         <div class="p-field">
           <label for="password">Password*</label>
@@ -89,7 +89,8 @@ const registerLandlord = async () => {
 };
 
 const onFileSelected = (event) => {
-  landlord.value.profileImage = event.target.files[0];
+  landlord.value.profileImage = event.files[0]; // event.files is an array of the selected files
+  console.log('File selected:', landlord.value.profileImage); // Log the selected file
 };
 </script>
 

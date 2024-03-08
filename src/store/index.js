@@ -21,7 +21,9 @@ export const store = createStore({
   },
   actions: {
     async registerLandlord({ commit }, payload) {
+      console.log(payload); // Log the payload
       try {
+        console.log(payload); // Log the payload
         // Destructure the payload to extract the image file and other user details
         const { email, password, profileImage, ...userDetails } = payload;
         
@@ -35,9 +37,16 @@ export const store = createStore({
           // Create a storage reference
           const imageRef = storageRef(storage, `profileImages/${user.uid}/${profileImage.name}`);
           // Upload the image
-          const snapshot = await uploadBytes(imageRef, profileImage);
+          const snapshot = await uploadBytes(imageRef, profileImage).catch((error) => {
+            console.error('Upload error:', error.message);
+            throw error;
+          });
           // Get the download URL
-          imageUrl = await getDownloadURL(snapshot.ref);
+          imageUrl = await getDownloadURL(snapshot.ref).catch((error) => {
+            console.error('Download URL error:', error.message);
+            throw error;
+          });
+          console.log(imageUrl); // Log the download URL
         }
 
         // Combine userDetails with the image URL
