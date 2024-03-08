@@ -110,6 +110,10 @@ const login = async () => {
   border-radius: 0;
 }
 
+:deep(.p-icon-field-right > .p-inputtext) {
+    padding-right: 9rem;
+}
+
 .login-button {
   width: 100%;
   margin-top: 1rem;
