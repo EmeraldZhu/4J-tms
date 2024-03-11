@@ -83,9 +83,12 @@ const registerLandlord = async () => {
     // Simplify the payload by spreading the landlord ref value.
     // Note: profileImage is a File object. The Vuex action should handle the image upload.
     await store.dispatch('registerLandlord', { ...landlord.value });
+    console.log('All operations completed, about to show success toast');
     toast.add({ severity: 'success', summary: 'Registration Successful', detail: 'You are now registered.', life: 3000 });
-    // Redirect after successful registration
-    router.push('/login/owner');
+    // Delay the navigation to give time for the toast to display
+    setTimeout(() => {
+      router.push('/login/owner');
+    }, 3500);
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Registration Failed', detail: error.message, life: 5000 });
   }
