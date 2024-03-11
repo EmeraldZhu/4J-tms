@@ -60,10 +60,10 @@ const user = computed(() => {
 });
 
 const menuItems = ref([
-  { label: 'Dashboard', to: '/owner/dashboard', icon: 'pi pi-fw pi-home' },
-  { label: 'Properties', to: '/owner', icon: 'pi pi-fw pi-list' },
+  { label: 'Dashboard', to: '/owner/dashboard', icon: 'pi pi-fw pi-th-large' },
+  { label: 'Properties', to: '/owner', icon: 'pi pi-fw pi-building' },
   { label: 'Tenants', to: '/owner/tenants', icon: 'pi pi-fw pi-users' },
-  { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-clipboard' },
+  { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-inbox' },
   { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-ticket' },
   // ... other menu items
 ]);
