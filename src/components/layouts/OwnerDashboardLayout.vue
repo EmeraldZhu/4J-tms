@@ -71,29 +71,36 @@ const menuItems = ref([
 
 <style scoped>
 .dashboard {
-  display: flex;
+  display: grid;
+  grid-template-columns: 250px auto; /* Sidebar width and auto for the rest */
+  grid-template-rows: auto 1fr; /* Top bar height auto and content takes the rest */
   height: 100vh;
 }
 
 .sidebar {
-  width: 250px;
-  background-color: #333;
-  color: white;
+  grid-row: 1 / span 2; /* Makes the sidebar span from the first to the last row */
+  background-color: #f0f0f0;
+  color: black;
   padding: 1rem;
-  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .menu-list {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }
 
 .menu-list li {
-  padding: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem 0;
+  transition: background-color 0.3s;
 }
 
 .menu-list li a {
-  color: white;
+  color: black;
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -103,18 +110,24 @@ const menuItems = ref([
   margin-right: 0.5rem;
 }
 
+.menu-list li:hover {
+  background-color: #e0e0e0;
+}
+
 .topbar {
-  background-color: #eee;
-  flex-grow: 1;
+  grid-column: 2; /* Aligns the top bar next to the sidebar */
+  background-color: #333;
+  color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
-  margin-bottom: auto;
+  padding: 0.5rem 2rem;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
 }
 
 .main-content {
-  flex-grow: 1;
+  grid-column: 2; /* Ensures content starts next to the sidebar */
+  grid-row: 2; /* Positions the main content under the top bar */
   padding: 1rem;
 }
 
@@ -122,6 +135,4 @@ const menuItems = ref([
   display: flex;
   align-items: center;
 }
-
-/* Add more styles as needed */
 </style>
