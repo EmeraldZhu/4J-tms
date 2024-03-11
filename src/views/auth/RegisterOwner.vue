@@ -1,5 +1,6 @@
 <template>
   <div class="register-container">
+    <Toast />
     <div class="p-card">
       <h2 class="p-card-title">Register For Your New Account</h2>
       <form @submit.prevent="registerLandlord" class="p-fluid">
@@ -54,6 +55,8 @@ import Dropdown from 'primevue/dropdown';
 import FileUpload from 'primevue/fileupload';
 import Password from 'primevue/password';
 import Button from 'primevue/button';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
 
 const genders = [
   { name: 'Male', value: 'male' },
@@ -73,18 +76,18 @@ const landlord = ref({
 
 const router = useRouter();
 const store = useStore();
+const toast = useToast();
 
 const registerLandlord = async () => {
   try {
     // Simplify the payload by spreading the landlord ref value.
     // Note: profileImage is a File object. The Vuex action should handle the image upload.
     await store.dispatch('registerLandlord', { ...landlord.value });
-
+    toast.add({ severity: 'success', summary: 'Registration Successful', detail: 'You are now registered.', life: 3000 });
     // Redirect after successful registration
     router.push('/login/owner');
   } catch (error) {
-    console.error('Registration error:', error.message);
-    // Handle errors appropriately (e.g., show error message to the user)
+    toast.add({ severity: 'error', summary: 'Registration Failed', detail: error.message, life: 5000 });
   }
 };
 
