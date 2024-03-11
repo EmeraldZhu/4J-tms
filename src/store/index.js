@@ -1,6 +1,6 @@
 import { createStore } from 'vuex';
 import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Initialize Firebase services
@@ -74,7 +74,7 @@ export const store = createStore({
             if (docSnap.exists()) {
               // User data exists in Firestore, commit to Vuext state
               const userData = docSnap.data();
-              commit('setUser', { uid: user.uid, email: user.email, ...userData });
+              commit('setUser', { uid: user.uid, email: user.email, profileImageUrl: userData.profileImageUrl, ...userData });
             } else {
               // // User data does not exist in Firestore
               console.log('No such document!');

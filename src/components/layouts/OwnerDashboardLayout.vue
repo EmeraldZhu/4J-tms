@@ -20,7 +20,7 @@
       </div>
       <div class="user-profile">
         <!-- This will show initials if no image is present, and an image if there's one -->
-        <Avatar :image="user.image" :label="user.initials" shape="circle" />
+        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" shape="circle" />
       </div>
     </div>
 
@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, toRefs } from 'vue';
 import { useStore } from 'vuex';
 import Menubar from 'primevue/menubar';
 import MultiSelect from 'primevue/multiselect';
@@ -51,12 +51,13 @@ const properties = ref([
 const selectedProperty = ref(null);
 
 const user = computed(() => {
-  // Here you would typically use a Vuex getter to get the user information
-  // For now, this is just placeholder data
-  return {
-    image: null, // Replace with actual image URL if available
-    initials: 'U', // Replace with logic to extract initials from the user's name
-  };
+  const userData = store.state.user;
+  if (userData) {
+    // Extract the first character from the first name and last name
+    const initials = `${userData.firstName[0]}${userData.lastName[0]}`;
+    return { ...toRefs(userData), initials };
+  }
+  return null;
 });
 
 const menuItems = ref([
@@ -67,6 +68,10 @@ const menuItems = ref([
   { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-ticket' },
   // ... other menu items
 ]);
+
+onMounted(() => {
+  store.dispatch('fetchUser');
+});
 </script>
 
 <style scoped>
