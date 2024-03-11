@@ -4,8 +4,8 @@ import HomePage from '../views/HomePage.vue';
 import RegisterOwner from '../views/auth/RegisterOwner.vue';
 import LoginOwner from '../views/auth/LoginOwner.vue';
 import ResetPassword from '../views/auth/ResetPassword.vue';
-import OwnerDashboard from '../components/layouts/OwnerDashboard.vue';
-import Dashboard from '../views/owner/Dashboard.vue';
+import OwnerDashboardLayout from '../components/layouts/OwnerDashboardLayout.vue';
+import OwnerDashboard from '../views/owner/Dashboard.vue';
 import Maintenance from '../views/owner/Maintenance.vue';
 import NoticeBoard from '../views/owner/NoticeBoard.vue';
 import Properties from '../views/owner/Properties.vue';
@@ -34,7 +34,7 @@ const routes = [
   },
   {
     path: '/owner',
-    component: OwnerDashboard,
+    component: OwnerDashboardLayout,
     children: [
       {
         path: '',
@@ -44,7 +44,7 @@ const routes = [
       {
         path: 'dashboard',
         name: 'OwnerDashboard',
-        component: Dashboard,
+        component: OwnerDashboard,
       },
       {
         path: 'maintenance',
