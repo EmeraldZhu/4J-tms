@@ -51,11 +51,11 @@ const user = computed(() => {
 });
 
 const menuItems = [
-  { label: 'Dashboard', to: '/dashboard' },
-  { label: 'Properties', to: '/properties' },
-  { label: 'Tenants/Residents', to: '/tenants' },
-  { label: 'Notice Board', to: '/notice-board' },
-  { label: 'Maintenance Tickets', to: '/maintenance-tickets' },
+  { label: 'Dashboard', to: '/owner/dashboard' },
+  { label: 'Properties', to: '' },
+  { label: 'Tenants/Residents', to: '/owner/tenants' },
+  { label: 'Notice Board', to: '/owner/notice-board' },
+  { label: 'Maintenance Tickets', to: '/owner/maintenance' },
   // ... other menu items
 ];
 </script>
