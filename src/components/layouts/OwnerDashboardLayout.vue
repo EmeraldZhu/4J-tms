@@ -61,7 +61,7 @@ const user = computed(() => {
 
 const menuItems = ref([
   { label: 'Dashboard', to: '/owner/dashboard', icon: 'pi pi-fw pi-home' },
-  { label: 'Properties', to: '/owner/properties', icon: 'pi pi-fw pi-list' },
+  { label: 'Properties', to: '/owner', icon: 'pi pi-fw pi-list' },
   { label: 'Tenants', to: '/owner/tenants', icon: 'pi pi-fw pi-users' },
   { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-clipboard' },
   { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-ticket' },

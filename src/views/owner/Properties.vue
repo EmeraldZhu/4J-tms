@@ -1,9 +1,7 @@
 <template>
-    <OwnerDashboardLayout>
-        Properties Here
-    </OwnerDashboardLayout>
+    Properties Here
 </template>
 
 <script setup>
-import OwnerDashboardLayout from '@/components/layouts/OwnerDashboardLayout.vue';
+
 </script>
