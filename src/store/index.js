@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -59,6 +59,34 @@ export const store = createStore({
       } catch (error) {
         console.error('Registration error:', error.message);
         throw error; // Propagate the error to be handled by the component
+      }
+    },
+    
+    async fetchUser({ commit }) {
+      try {
+        // Listen for user auth state changes
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            // User is signed in, get their data from Firestore
+            const docRef = doc(db, 'landlords', user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+              // User data exists in Firestore, commit to Vuext state
+              const userData = docSnap.data();
+              commit('setUser', { uid: user.uid, email: user.email, ...userData });
+            } else {
+              // // User data does not exist in Firestore
+              console.log('No such document!');
+            }
+          } else {
+            // User is signed out, clear Vuex state
+            commit('setUser', null);
+          }
+        });
+      } catch (error) {
+        console.error('Fetch user error:', error.message);
+        throw error;
       }
     },
   },
