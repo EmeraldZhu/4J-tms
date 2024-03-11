@@ -52,7 +52,7 @@ const login = async () => {
     // Assuming you have a Vuex mutation to set the user
     store.commit('setUser', userCredential.user);
     setTimeout(() => {
-      router.push('/dashboard/owner');
+      router.push('/owner');
     }, 1500); // Waits a bit longer than the toast life to navigate
   } catch (error) {
     console.error('Login error:', error.message);
