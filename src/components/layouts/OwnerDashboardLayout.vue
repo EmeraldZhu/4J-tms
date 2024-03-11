@@ -1,24 +1,33 @@
 <template>
-  <div class="dashboard-layout">
-    <!-- Top Bar/Header -->
-    <Menubar>
-      <template #start>
-        <MultiSelect v-model="selectedProperty" :options="properties" optionLabel="name" placeholder="Select a Property" />
-      </template>
-      <template #end>
-        <Avatar v-if="user.image" :image="user.image" shape="circle" />
-        <Avatar v-else :label="user.initials" shape="circle" />
-      </template>
-    </Menubar>
-
-    <!-- Sidebar -->
-    <Sidebar visible :baseZIndex="1000" :modal="false" class="sidebar-menu">
-      <ul class="p-flex-column p-list-none p-m-0 p-p-0">
+  <div class="dashboard">
+    <!-- Permanent Sidebar -->
+    <div class="sidebar">
+      <ul class="menu-list">
         <li v-for="item in menuItems" :key="item.label">
-          <router-link :to="item.to">{{ item.label }}</router-link>
+          <router-link :to="item.to">
+            <i :class="item.icon"></i>
+            <span>{{ item.label }}</span>
+          </router-link>
         </li>
       </ul>
-    </Sidebar>
+    </div>
+
+    <!-- Top Bar/Header -->
+    <div class="topbar">
+      <div>
+        <!-- Property dropdown placeholder -->
+        <MultiSelect v-model="selectedProperty" :options="properties" optionLabel="name" placeholder="Select a Property" />
+      </div>
+      <div class="user-profile">
+        <!-- This will show initials if no image is present, and an image if there's one -->
+        <Avatar :image="user.image" :label="user.initials" shape="circle" />
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <router-view />
+    </div>
   </div>
 </template>
 
@@ -50,26 +59,69 @@ const user = computed(() => {
   };
 });
 
-const menuItems = [
-  { label: 'Dashboard', to: '/owner/dashboard' },
-  { label: 'Properties', to: '' },
-  { label: 'Tenants/Residents', to: '/owner/tenants' },
-  { label: 'Notice Board', to: '/owner/notice-board' },
-  { label: 'Maintenance Tickets', to: '/owner/maintenance' },
+const menuItems = ref([
+  { label: 'Dashboard', to: '/owner/dashboard', icon: 'pi pi-fw pi-home' },
+  { label: 'Properties', to: '/owner/properties', icon: 'pi pi-fw pi-list' },
+  { label: 'Tenants', to: '/owner/tenants', icon: 'pi pi-fw pi-users' },
+  { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-clipboard' },
+  { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-ticket' },
   // ... other menu items
-];
+]);
 </script>
 
 <style scoped>
-.dashboard-layout {
+.dashboard {
   display: flex;
   height: 100vh;
 }
 
-.sidebar-menu {
+.sidebar {
   width: 250px;
-  height: 100%;
+  background-color: #333;
+  color: white;
+  padding: 1rem;
+  margin-right: auto;
 }
 
-/* Add additional styling here */
+.menu-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.menu-list li {
+  padding: 0.5rem 0;
+}
+
+.menu-list li a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.menu-list li a i {
+  margin-right: 0.5rem;
+}
+
+.topbar {
+  background-color: #eee;
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  margin-bottom: auto;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
+/* Add more styles as needed */
 </style>
