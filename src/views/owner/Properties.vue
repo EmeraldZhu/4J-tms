@@ -164,33 +164,100 @@ const submit = async () => {
 </script>
 
 <style scoped>
-/* Form */
+/* General Form Styling */
 .form {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 40rem; /* Adjust based on PrimeVue's stepper width */
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+h1, h3 {
+  text-align: center;
+}
+
+p {
+  text-align: center;
+  color: #575757; /* Adjust for better readability */
+}
+
+/* Button Styling (Assuming PrimeVue's button styling is used) */
+.p-button {
+  margin: 0.5rem 0;
+}
+
+/* Input and Textarea Styling */
+.p-inputtext, .p-inputnumber, .p-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #c8c8c8; /* Light gray border */
+}
+
+.p-textarea {
+  resize: vertical; /* Allow vertical resizing */
+}
+
+/* Stepper and Step Panel Styling */
+.p-stepper .p-stepper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.p-stepper .p-stepper-content {
   padding: 1rem;
 }
 
-/* Form Fields */
-.form .p-field {
-  margin-bottom: 1rem;
+/* Active and Completed Steps Styling */
+.p-stepper .p-stepper-step.p-active .p-stepper-number,
+.p-stepper .p-stepper-step.p-completed .p-stepper-number {
+  background-color: #007ad9; /* PrimeVue's primary color */
+  color: white;
 }
 
-/* Buttons */
-.form .p-button {
-  margin-top: 1rem;
+/* Future Steps Styling */
+.p-stepper .p-stepper-step .p-stepper-number {
+  background-color: #e9ecef; /* Light gray background for future steps */
+  color: #6c757d; /* Darker gray for the number */
 }
 
-/* Stepper */
-.form .p-steps {
-  margin-bottom: 2rem;
+/* Adjustments for Icons within Buttons and Inputs */
+.p-button .pi, .p-input-icon {
+  margin-right: 0.5rem;
 }
 
-/* Active Step */
-.form .p-steps .p-steps-item.p-highlight .p-steps-title {
-  color: #1976d2;
+/* File Upload Styling */
+.p-fileupload {
+  border: 1px solid #c8c8c8;
+  border-radius: 0.25rem;
+}
+
+.p-fileupload .p-fileupload-buttonbar .p-button {
+  background-color: #007ad9;
+  border-color: #007ad9;
+  color: white;
+}
+
+/* Override PrimeVue's styles if necessary */
+.p-inputtext {
+  border: 1px solid #ced4da; /* Bootstrap-like input border */
+}
+
+.p-button {
+  border: none;
+  background-color: #007bff;
+  color: white;
+}
+
+.p-button.p-button-secondary {
+  background-color: #6c757d;
 }
 </style>
