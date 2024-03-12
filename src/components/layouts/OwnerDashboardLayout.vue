@@ -77,7 +77,8 @@ const user = computed(() => {
   if (userData) {
     // Safely extract the first character from the first name and last name
     const initials = `${userData.firstName?.[0] ?? 'U'}${userData.lastName?.[0] ?? 'N'}`;
-    return { ...toRefs(userData), initials };
+    const photoURL = userData.photoURL || null;
+    return { ...toRefs(userData), initials, photoURL };
   }
   return null;
 });
