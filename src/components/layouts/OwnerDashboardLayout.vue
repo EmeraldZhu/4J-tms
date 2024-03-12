@@ -20,7 +20,7 @@
       </div>
       <div class="user-profile">
         <!-- This will show initials if no image is present, and an image if there's one -->
-        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" shape="circle" />
+        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle" />
       </div>
     </div>
 
