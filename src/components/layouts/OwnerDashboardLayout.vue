@@ -20,7 +20,10 @@
       </div>
       <div class="user-profile">
         <!-- This will show initials if no image is present, and an image if there's one -->
-        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle" />
+        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle" @click="op.toggle($event)" />
+        <OverlayPanel ref="op">
+          <Button label="Logout" @click="logout" />
+        </OverlayPanel>
       </div>
     </div>
 
@@ -38,8 +41,16 @@ import Menubar from 'primevue/menubar';
 import MultiSelect from 'primevue/multiselect';
 import Avatar from 'primevue/avatar';
 import Sidebar from 'primevue/sidebar';
+import Button from 'primevue/button';
+import OverlayPanel from 'primevue/overlaypanel';
 
 const store = useStore();
+
+const op = ref(null);
+
+const logout = () => {
+  store.dispatch('logout');
+};
 
 const properties = ref([
   // This should be replaced with real property data from your store or API

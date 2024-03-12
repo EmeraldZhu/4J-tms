@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -89,6 +89,16 @@ export const store = createStore({
         throw error;
       }
     },
+
+    async logout({ commit }) {
+      try {
+        await signOut(auth);
+        commit('setUser', null);
+      } catch (error) {
+        console.error('Logout error:', error.message);
+        throw error;
+      }
+    }
   },
   getters: {
     isAuthenticated(state) {
