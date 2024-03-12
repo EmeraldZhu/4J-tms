@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard">
+  <div class="dashboard" v-if="!isLoading">
     <!-- Permanent Sidebar -->
     <div class="sidebar">
       <ul class="menu-list">
@@ -32,11 +32,15 @@
       <router-view />
     </div>
   </div>
+  <div v-else>
+    Loading...
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, toRefs } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import Menubar from 'primevue/menubar';
 import MultiSelect from 'primevue/multiselect';
 import Avatar from 'primevue/avatar';
@@ -45,11 +49,18 @@ import Button from 'primevue/button';
 import OverlayPanel from 'primevue/overlaypanel';
 
 const store = useStore();
+const router = useRouter();
+const isLoading = computed(() => store.state.isLoading); // Access the loading state from the store
 
 const op = ref(null);
 
-const logout = () => {
-  store.dispatch('logout');
+const logout = async () => {
+  try {
+    await store.dispatch('logout');
+    router.push('/login/owner');
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
 };
 
 const properties = ref([

@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useStore } from 'vuex';
 import Toast from 'primevue/toast'; // Import Toast component
 import { useToast } from 'primevue/usetoast'; // Import useToast hook
@@ -60,6 +60,12 @@ const login = async () => {
     toast.add({ severity: 'error', summary: 'Login Failed', detail: error.message, life: 5000 });
   }
 };
+
+onBeforeRouteLeave((to, from) => {
+  if (from.path.startsWith('/owner') && to.path.startsWith('/login/owner')) {
+    toast.add({ severity: 'success', summary: 'Logout Successful', detail: 'You have been logged out.', life: 3000 });
+  }
+});
 </script>
 
 <style scoped>

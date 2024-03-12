@@ -1,4 +1,5 @@
 import { createStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -12,11 +13,15 @@ export const store = createStore({
   state() {
     return {
       user: null,
+      isLoading: false, // add loading state
     };
   },
   mutations: {
     setUser(state, user) {
       state.user = user;
+    },
+    setLoading(state, isLoading) {
+      state.isLoading = isLoading; // Add mutation to set loading state
     },
   },
   actions: {
@@ -63,6 +68,7 @@ export const store = createStore({
     },
     
     async fetchUser({ commit }) {
+      commit('setLoading', true); // Set loading state to true before fetching user data
       try {
         // Listen for user auth state changes
         onAuthStateChanged(auth, async (user) => {
@@ -83,6 +89,7 @@ export const store = createStore({
             // User is signed out, clear Vuex state
             commit('setUser', null);
           }
+          commit('setLoading', false); // Set loading state to false after fetching user data
         });
       } catch (error) {
         console.error('Fetch user error:', error.message);
@@ -94,6 +101,8 @@ export const store = createStore({
       try {
         await signOut(auth);
         commit('setUser', null);
+        // const router = useRouter();
+        // router.push('/login/owner');
       } catch (error) {
         console.error('Logout error:', error.message);
         throw error;
