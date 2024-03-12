@@ -214,6 +214,10 @@ const submit = async () => {
 </script>
 
 <style scoped>
+body {
+  padding: 1rem;
+}
+
 .p-stepper {
   flex-basis: 40rem;
 }
