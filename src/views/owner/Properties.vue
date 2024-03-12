@@ -8,58 +8,108 @@
     <Stepper>
       <!-- Property Name -->
       <StepperPanel header="Property Name">
+        <template #header="{ index, clickCallback }">
+          <button class="bg-transparent border-none inline-flex flex-column gap-2" @click="clickCallback">
+            <span :class="['border-round border-2 w-3rem h-3rem inline-flex align-items-center justify-content-center', { 'bg-primary border-primary': index <= active, 'surface-border': index > active }]">
+              <i class="pi pi-building" />
+            </span>
+          </button>
+        </template>
         <template #content="{ nextCallback }">
-          <h3>Property Name *</h3>
-          <InputText v-model="property.name" placeholder="Enter property name" />
-          <Button label="Next" @click="nextCallback" />
+          <div class="flex flex-column gap-2 mx-auto" style="min-height: 16rem; max-width: 20rem">
+            <div class="text-center mt-3 mb-3 text-xl font-semibold">Property Name</div>
+            <div class="field p-fluid">
+              <IconField>
+                <InputIcon>
+                  <i class="pi pi-building" />
+                </InputIcon>
+                <InputText v-model="property.name" type="text" placeholder="Enter property name" />
+              </IconField>
+            </div>
+          </div>
+          <div class="flex pt-4 justify-content-end">
+            <Button label="Next" icon="pi pi-arrow-right" iconPos="right" @click="nextCallback" />
+          </div>
         </template>
       </StepperPanel>
 
       <!-- Number of Units -->
       <StepperPanel header="Number of Units">
         <template #content="{ prevCallback, nextCallback }">
-          <h3>Number of Units *</h3>
-          <InputNumber v-model="property.units" mode="decimal" :min="1" />
-          <Button label="Back" @click="prevCallback" />
-          <Button label="Next" @click="nextCallback" />
+          <div class="flex flex-column gap-2 mx-auto" style="min-height: 16rem; max-width: 20rem">
+            <div class="text-center mt-3 mb-3 text-xl font-semibold">Number of Units</div>
+            <div class="field p-fluid">
+              <InputNumber v-model="property.units" mode="decimal" :min="1" placeholder="Specify number of units" />
+            </div>
+          </div>
+          <div class="flex pt-4 justify-content-between">
+            <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
+            <Button label="Next" severity="secondary" icon="pi pi-arrow-right" @click="nextCallback" />
+          </div>
         </template>
       </StepperPanel>
 
       <!-- Unit Names -->
       <StepperPanel header="Unit Names">
         <template #content="{ prevCallback, nextCallback }">
-          <h3>Unit Names *</h3>
-          <InputText v-model="property.unitNames" placeholder="Enter unit names" />
-          <Button label="Back" @click="prevCallback" />
-          <Button label="Next" @click="nextCallback" />
+          <div class="flex flex-column gap-2 mx-auto" style="min-height: 16rem; max-width: 20rem">
+            <div class="text-center mt-3 mb-3 text-xl font-semibold">Unit Names</div>
+            <div class="field p-fluid">
+              <InputText v-model="property.unitNames" type="text" placeholder="Enter unit names" />
+            </div>
+          </div>
+          <div class="flex pt-4 justify-content-between">
+            <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
+            <Button label="Next" severity="secondary" icon="pi pi-arrow-right" @click="nextCallback" />
+          </div>
         </template>
       </StepperPanel>
 
       <!-- Address -->
       <StepperPanel header="Address">
         <template #content="{ prevCallback, nextCallback }">
-          <h3>Address *</h3>
-          <Textarea v-model="property.address" rows={5} cols={30} placeholder="Enter address" />
-          <Button label="Back" @click="prevCallback" />
-          <Button label="Next" @click="nextCallback" />
+          <div class="flex flex-column gap-2 mx-auto" style="min-height: 16rem; max-width: 20rem">
+            <div class="text-center mt-3 mb-3 text-xl font-semibold">Address</div>
+            <div class="field p-fluid">
+              <InputText v-model="property.address" type="text" placeholder="Enter address" />
+            </div>
+          </div>
+          <div class="flex pt-4 justify-content-between">
+            <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
+            <Button label="Next" severity="secondary" icon="pi pi-arrow-right" @click="nextCallback" />
+          </div>
         </template>
       </StepperPanel>
 
       <!-- Media Uploads -->
       <StepperPanel header="Media Uploads">
         <template #content="{ prevCallback, nextCallback }">
-          <h3>Media Uploads</h3>
-          <FileUpload name="media" accept="image/*" :maxFileSize="3670016" :auto="false" customUpload @uploader="onFileSelected" />
-          <Button label="Back" @click="prevCallback" />
-          <Button label="Next" @click="nextCallback" />
+          <div class="flex flex-column gap-2 mx-auto" style="min-height: 16rem; max-width: 20rem">
+            <div class="text-center mt-3 mb-3 text-xl font-semibold">Media Uploads</div>
+            <div class="field p-fluid">
+              <FileUpload name="media" accept="image/*" :maxFileSize="3670016" :auto="false" customUpload @uploader="onFileSelected" />
+            </div>
+          </div>
+          <div class="flex pt-4 justify-content-between">
+            <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
+            <Button label="Next" severity="secondary" icon="pi pi-arrow-right" @click="nextCallback" />
+          </div>
         </template>
       </StepperPanel>
 
       <!-- Submit Button -->
       <StepperPanel header="Submit">
         <template #content="{ prevCallback }">
-          <Button label="Submit" @click="submit" />
-          <Button label="Back" @click="prevCallback" />
+          <div class="flex flex-column gap-2 mx-auto" style="min-height: 16rem; max-width: 20rem">
+            <div class="text-center mt-3 mb-3 text-xl font-semibold">Post Property</div>
+            <div class="field p-fluid">
+              
+            </div>
+          </div>
+        <div class="flex pt-4 justify-content-between">
+          <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
+          <Button label="Submit" icon="pi pi-send" @click="submit" />
+        </div>
         </template>
       </StepperPanel>
     </Stepper>
@@ -68,12 +118,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import Steps from 'primevue/steps';
 import Stepper from 'primevue/stepper';
 import StepperPanel from 'primevue/stepperpanel';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
-import Textarea from 'primevue/textarea';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
@@ -164,100 +214,7 @@ const submit = async () => {
 </script>
 
 <style scoped>
-/* General Form Styling */
-.form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  width: 100%;
-  max-width: 40rem; /* Adjust based on PrimeVue's stepper width */
-  margin: 2rem auto;
-  padding: 1rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-}
-
-h1, h3 {
-  text-align: center;
-}
-
-p {
-  text-align: center;
-  color: #575757; /* Adjust for better readability */
-}
-
-/* Button Styling (Assuming PrimeVue's button styling is used) */
-.p-button {
-  margin: 0.5rem 0;
-}
-
-/* Input and Textarea Styling */
-.p-inputtext, .p-inputnumber, .p-textarea {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid #c8c8c8; /* Light gray border */
-}
-
-.p-textarea {
-  resize: vertical; /* Allow vertical resizing */
-}
-
-/* Stepper and Step Panel Styling */
-.p-stepper .p-stepper-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-}
-
-.p-stepper .p-stepper-content {
-  padding: 1rem;
-}
-
-/* Active and Completed Steps Styling */
-.p-stepper .p-stepper-step.p-active .p-stepper-number,
-.p-stepper .p-stepper-step.p-completed .p-stepper-number {
-  background-color: #007ad9; /* PrimeVue's primary color */
-  color: white;
-}
-
-/* Future Steps Styling */
-.p-stepper .p-stepper-step .p-stepper-number {
-  background-color: #e9ecef; /* Light gray background for future steps */
-  color: #6c757d; /* Darker gray for the number */
-}
-
-/* Adjustments for Icons within Buttons and Inputs */
-.p-button .pi, .p-input-icon {
-  margin-right: 0.5rem;
-}
-
-/* File Upload Styling */
-.p-fileupload {
-  border: 1px solid #c8c8c8;
-  border-radius: 0.25rem;
-}
-
-.p-fileupload .p-fileupload-buttonbar .p-button {
-  background-color: #007ad9;
-  border-color: #007ad9;
-  color: white;
-}
-
-/* Override PrimeVue's styles if necessary */
-.p-inputtext {
-  border: 1px solid #ced4da; /* Bootstrap-like input border */
-}
-
-.p-button {
-  border: none;
-  background-color: #007bff;
-  color: white;
-}
-
-.p-button.p-button-secondary {
-  background-color: #6c757d;
+.p-stepper {
+  flex-basis: 40rem;
 }
 </style>
