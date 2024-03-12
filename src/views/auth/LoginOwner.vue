@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useStore } from 'vuex';
 import Toast from 'primevue/toast'; // Import Toast component
@@ -64,6 +64,13 @@ const login = async () => {
 onBeforeRouteLeave((to, from) => {
   if (from.path.startsWith('/owner') && to.path.startsWith('/login/owner')) {
     toast.add({ severity: 'success', summary: 'Logout Successful', detail: 'You have been logged out.', life: 3000 });
+  }
+});
+
+onMounted(() => {
+  if (store.state.showLogoutToast) {
+    toast.add({severity:'success', summary: 'Logged Out', detail: 'You have been successfully logged out.', life: 3000});
+    store.commit('setShowLogoutToast', false); // Reset the flag
   }
 });
 </script>

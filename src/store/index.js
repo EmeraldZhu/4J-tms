@@ -14,6 +14,7 @@ export const store = createStore({
     return {
       user: null,
       isLoading: false, // add loading state
+      showLogoutToast: false,
     };
   },
   mutations: {
@@ -22,6 +23,9 @@ export const store = createStore({
     },
     setLoading(state, isLoading) {
       state.isLoading = isLoading; // Add mutation to set loading state
+    },
+    setShowLogoutToast(state, value) {
+      state.showLogoutToast = value;
     },
   },
   actions: {
@@ -101,6 +105,7 @@ export const store = createStore({
       try {
         await signOut(auth);
         commit('setUser', null);
+        commit('setShowLogoutToast', true); // Set the flag before redirecting
       } catch (error) {
         console.error('Logout error:', error.message);
         throw error;
