@@ -101,8 +101,6 @@ export const store = createStore({
       try {
         await signOut(auth);
         commit('setUser', null);
-        // const router = useRouter();
-        // router.push('/login/owner');
       } catch (error) {
         console.error('Logout error:', error.message);
         throw error;
