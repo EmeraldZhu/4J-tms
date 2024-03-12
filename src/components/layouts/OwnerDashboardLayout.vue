@@ -75,8 +75,8 @@ const selectedProperty = ref(null);
 const user = computed(() => {
   const userData = store.state.user;
   if (userData) {
-    // Extract the first character from the first name and last name
-    const initials = `${userData.firstName[0]}${userData.lastName[0]}`;
+    // Safely extract the first character from the first name and last name
+    const initials = `${userData.firstName?.[0] ?? 'U'}${userData.lastName?.[0] ?? 'N'}`;
     return { ...toRefs(userData), initials };
   }
   return null;
