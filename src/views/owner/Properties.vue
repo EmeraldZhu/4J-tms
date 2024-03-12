@@ -109,7 +109,7 @@
           </div>
         <div class="flex pt-4 justify-content-between">
           <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
-          <Button label="Submit" icon="pi pi-send" @click="submit" />
+          <Button label="Submit" icon="pi pi-send" @click="submit" :disabled="isSubmitting" />
         </div>
         </template>
       </StepperPanel>
@@ -133,6 +133,8 @@ import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const toast = useToast();
+
+let isSubmitting = ref(false); // Track the submission status
 
 let activeIndex = ref(0);
 let property = ref({
@@ -175,6 +177,11 @@ const onFileSelected = (event) => {
 };
 
 const submit = async () => {
+  if (isSubmitting.value) {
+    // Prevent submission if already submitting
+    return;
+  }
+
   // Validate the form data
   if (!property.value.name || !property.value.units || !property.value.unitNames || !property.value.address) {
     console.error('Please fill in all required fields.');
@@ -182,22 +189,24 @@ const submit = async () => {
     return;
   }
 
+  isSubmitting.value = true;
+
   let mediaUrl = '';
   // Check if a media file was provided
   if (property.value.media) {
-    // Create a storage reference
-    const mediaRef = storageRef(storage, `propertyImages/${property.value.name}/${property.value.media.name}`);
-    // Upload the media file
-    const snapshot = await uploadBytes(mediaRef, property.value.media).catch((error) => {
+    try {
+      // Create a storage reference
+      const mediaRef = storageRef(storage, `propertyImages/${property.value.name}/${property.value.media.name}`);
+      // Upload the media file
+      const snapshot = await uploadBytes(mediaRef, property.value.media);
+      // Get the download URL
+      mediaUrl = await getDownloadURL(snapshot.ref);
+    } catch (error) {
       console.error('Upload error:', error.message);
-      throw error;
-    });
-    // Get the download URL
-    mediaUrl = await getDownloadURL(snapshot.ref).catch((error) => {
-      console.error('Download URL error:', error.message);
-      throw error;
-    });
-    console.log(mediaUrl); // Log the download URL
+      toast.add({severity: 'error', summary: 'Upload Error', detail: error.message, life: 3000});
+      isSubmitting.value = false; // Re-enable the submit button
+      return;
+    }
   }
 
   // Prepare the form data for submission
@@ -216,9 +225,20 @@ const submit = async () => {
 
     console.log('Document written with ID: ', docRef.id);
     toast.add({severity: 'success', summary: 'Property Added', detail: 'Your property has been added successfully.', life: 3000});
+
+    // Reset property data after successful submission
+    property.value = {
+      name: '',
+      units: 1,
+      unitNames: '',
+      address: '',
+      media: null,
+    };
   } catch (e) {
     console.error('Error adding document: ', e);
     toast.add({severity: 'error', summary: 'Error', detail: 'There was an error processing your request.', life: 3000});
+  } finally {
+    isSubmitting.value = false; // Re-enable the submit button
   }
 };
 </script>
