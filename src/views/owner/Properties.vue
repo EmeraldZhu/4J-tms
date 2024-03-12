@@ -6,7 +6,7 @@
     <p>Fields marked with * are required.</p>
 
     <!-- The form starts here -->
-    <Stepper>
+    <Stepper orientation="vertical">
       <!-- Property Name -->
       <StepperPanel header="Property Name">
         <template #header="{ index, clickCallback }">
