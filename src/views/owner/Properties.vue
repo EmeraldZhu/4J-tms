@@ -19,7 +19,7 @@
       <StepperPanel header="Number of Units">
         <template #content="{ prevCallback, nextCallback }">
           <h3>Number of Units *</h3>
-          <InputNumber v-model="property.units" mode="decimal" min={1} />
+          <InputNumber v-model="property.units" mode="decimal" :min="1" />
           <Button label="Back" @click="prevCallback" />
           <Button label="Next" @click="nextCallback" />
         </template>
