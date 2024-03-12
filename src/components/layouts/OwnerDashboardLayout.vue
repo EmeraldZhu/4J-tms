@@ -20,9 +20,9 @@
       </div>
       <div class="user-profile">
         <!-- This will show initials if no image is present, and an image if there's one -->
-        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle" @click="op.toggle($event)" />
+        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle" @click="op.toggle($event)" class="clickable-avatar" />
         <OverlayPanel ref="op">
-          <Button label="Logout" @click="logout" />
+          <Button label="Logout" icon="pi pi-sign-out" @click="logout" />
         </OverlayPanel>
       </div>
     </div>
@@ -150,5 +150,9 @@ onMounted(() => {
 .user-profile {
   display: flex;
   align-items: center;
+}
+
+.clickable-avatar:hover {
+  cursor: pointer;
 }
 </style>
