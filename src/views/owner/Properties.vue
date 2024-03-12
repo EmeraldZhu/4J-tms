@@ -1,5 +1,6 @@
 <template>
   <div class="form">
+    <Toast />
     <h1>Add New Property</h1>
     <p>Fill in the details of the property you want to add.</p>
     <p>Fields marked with * are required.</p>
@@ -118,6 +119,8 @@
 
 <script setup>
 import { ref } from 'vue';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
 import Stepper from 'primevue/stepper';
 import StepperPanel from 'primevue/stepperpanel';
 import InputText from 'primevue/inputtext';
@@ -128,6 +131,8 @@ import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+const toast = useToast();
 
 let activeIndex = ref(0);
 let property = ref({
@@ -165,12 +170,15 @@ const back = () => {
 const onFileSelected = (event) => {
   property.value.media = event.files[0]; // event.files is an array of the selected files
   console.log('File selected:', property.value.media); // Log the selected file
+  // Show success toast when a file is selected
+  toast.add({severity: 'success', summary: 'File Selected', detail: 'Your file has been selected successfully.', life: 3000});
 };
 
 const submit = async () => {
   // Validate the form data
   if (!property.value.name || !property.value.units || !property.value.unitNames || !property.value.address) {
     console.error('Please fill in all required fields.');
+    toast.add({severity: 'error', summary: 'Validation Error', detail: 'Please fill in all required fields.', life: 3000});
     return;
   }
 
@@ -207,8 +215,10 @@ const submit = async () => {
     const docRef = await addDoc(collection(db, 'properties'), data);
 
     console.log('Document written with ID: ', docRef.id);
+    toast.add({severity: 'success', summary: 'Property Added', detail: 'Your property has been added successfully.', life: 3000});
   } catch (e) {
     console.error('Error adding document: ', e);
+    toast.add({severity: 'error', summary: 'Error', detail: 'There was an error processing your request.', life: 3000});
   }
 };
 </script>
