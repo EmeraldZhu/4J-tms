@@ -129,9 +129,12 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
+import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
+const auth = getAuth();
+const user = auth.currentUser;
 const toast = useToast();
 
 let isSubmitting = ref(false); // Track the submission status
@@ -219,26 +222,41 @@ const submit = async () => {
     // Add other fields as needed
   };
 
-  try {
-    // Add a new document with a generated id to the 'properties' collection
-    const docRef = await addDoc(collection(db, 'properties'), data);
+  if (user !== null) {
+    try {
+      // Add a new document with a generated id to the 'properties' collection
+      const docRef = await addDoc(collection(db, 'properties'), data);
 
-    console.log('Document written with ID: ', docRef.id);
-    toast.add({severity: 'success', summary: 'Property Added', detail: 'Your property has been added successfully.', life: 3000});
+      console.log('Document written with ID: ', docRef.id);
+      toast.add({severity: 'success', summary: 'Property Added', detail: 'Your property has been added successfully.', life: 3000});
 
-    // Reset property data after successful submission
-    property.value = {
-      name: '',
-      units: 1,
-      unitNames: '',
-      address: '',
-      media: null,
-    };
-  } catch (e) {
-    console.error('Error adding document: ', e);
-    toast.add({severity: 'error', summary: 'Error', detail: 'There was an error processing your request.', life: 3000});
-  } finally {
-    isSubmitting.value = false; // Re-enable the submit button
+      // Use the landlord's user ID obtained from Firebase Auth
+      const landlordId = user.uid; 
+
+      // Store the mapping of landlord to property
+      await addDoc(collection(db, 'landlordProperties'), {
+        landlordId: landlordId,
+        propertyId: docRef.id
+      });
+
+      // Reset property data after successful submission
+      property.value = {
+        name: '',
+        units: 1,
+        unitNames: '',
+        address: '',
+        media: null,
+      };
+    } catch (e) {
+      console.error('Error adding document: ', e);
+      toast.add({severity: 'error', summary: 'Error', detail: 'There was an error processing your request.', life: 3000});
+    } finally {
+      isSubmitting.value = false; // Re-enable the submit button
+    }
+  } else {
+  // Handle the case where no user is signed in
+  console.error("No user signed in");
+  toast.add({severity: 'error', summary: 'Authentication Error', detail: 'No user signed in.', life: 3000});
   }
 };
 </script>
