@@ -253,7 +253,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const auth = getAuth();
@@ -454,10 +454,19 @@ onMounted(async () => {
 // Watch for changes in propertyName to fetch property unit names
 watch(propertyName, async (newVal) => {
   if (!newVal) return;
-  const propertyDoc = await getDocs(collection(db, 'properties'), where('id', '==', newVal));
-  if (!propertyDoc.empty) {
-    const propertyData = propertyDoc.docs[0].data();
+
+  // Extract the document ID from the Proxy object
+  const documentId = newVal.value; // Assuming 'value' contains the document ID
+  console.log('Extracted Document ID:', documentId);
+
+  const propertyRef = doc(db, 'properties', documentId);
+  const docSnap = await getDoc(propertyRef);
+
+  if (docSnap.exists()) {
+    const propertyData = docSnap.data();
     unitNames.value = propertyData.unitNames.split(',').map(name => ({ label: name.trim(), value: name.trim() }));
+  } else {
+    console.log("No such document!");
   }
 });
 
