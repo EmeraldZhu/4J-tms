@@ -453,20 +453,30 @@ onMounted(async () => {
 
 // Watch for changes in propertyName to fetch property unit names
 watch(propertyName, async (newVal) => {
-  if (!newVal) return;
-
-  // Extract the document ID from the Proxy object
-  const documentId = newVal.value; // Assuming 'value' contains the document ID
-  console.log('Extracted Document ID:', documentId);
-
+  if (!newVal || !newVal.value) return;
+  
+  const documentId = newVal.value; // The selected property ID
   const propertyRef = doc(db, 'properties', documentId);
   const docSnap = await getDoc(propertyRef);
 
   if (docSnap.exists()) {
     const propertyData = docSnap.data();
-    unitNames.value = propertyData.unitNames.split(',').map(name => ({ label: name.trim(), value: name.trim() }));
+    // All potential unit names for the property
+    const allUnitNames = propertyData.unitNames.split(',').map(name => name.trim());
+
+    // Fetch units already added for this property, considering the structure of propertyName and propertyUnitName
+    const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', documentId));
+    const querySnapshot = await getDocs(unitsQuery);
+    // Extract used unit names considering propertyUnitName is an object
+    const usedUnitNames = querySnapshot.docs.map(doc => doc.data().propertyUnitName.value);
+
+    // Filter out used unit names from the list of all unit names
+    const unusedUnitNames = allUnitNames.filter(name => !usedUnitNames.includes(name));
+
+    // Update the dropdown options with unused unit names
+    unitNames.value = unusedUnitNames.map(name => ({ label: name, value: name }));
   } else {
-    console.log("No such document!");
+    console.log("No such document found!");
   }
 });
 
@@ -479,11 +489,49 @@ onMounted(async () => {
   unitTypes.splice(0, unitTypes.length, ...querySnapshot.docs.map(doc => ({ label: doc.data().type, value: doc.id })));
 });
 
+const refreshUnitNames = async () => {
+  if (!propertyName.value || !propertyName.value.value) return;
+
+  const documentId = propertyName.value.value; // The selected property ID
+  const propertyRef = doc(db, 'properties', documentId);
+  const docSnap = await getDoc(propertyRef);
+
+  if (docSnap.exists()) {
+    const propertyData = docSnap.data();
+    const allUnitNames = propertyData.unitNames.split(',').map(name => name.trim());
+
+    // Fetch units already added for this property
+    const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', documentId));
+    const querySnapshot = await getDocs(unitsQuery);
+    const usedUnitNames = querySnapshot.docs.map(doc => doc.data().propertyUnitName.value);
+
+    // Filter out used unit names
+    const unusedUnitNames = allUnitNames.filter(name => !usedUnitNames.includes(name));
+
+    // Update the dropdown options
+    unitNames.value = unusedUnitNames.map(name => ({ label: name, value: name }));
+  } else {
+    console.log("No such document found!");
+  }
+};
+
 const addUnit = async () => {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
 
+  // Perform the application-level check to ensure the selected unit name hasn't been used
+  const unitNameQuery = query(collection(db, 'units'), where('propertyName.value', '==', propertyName.value.value), where('propertyUnitName.value', '==', propertyUnitName.value.value));
+  const querySnapshot = await getDocs(unitNameQuery);
+
+  if (!querySnapshot.empty) {
+    // Unit name already exists, do not proceed with adding and show an error message
+    toast.add({ severity: 'error', summary: 'Unit Name Exists', detail: 'This unit name is already used for the selected property.', life: 3000 });
+    isSubmitting.value = false;
+    return; // Exit the function early
+  }
+
   try {
+    // Proceed with adding the new unit since the name hasn't been used
     await addDoc(collection(db, 'units'), {
       propertyName: propertyName.value,
       propertyUnitName: propertyUnitName.value,
@@ -493,6 +541,10 @@ const addUnit = async () => {
     });
 
     toast.add({ severity: 'success', summary: 'Unit Added', detail: 'The unit has been successfully added.', life: 3000 });
+
+    // Update UI reactively
+    refreshUnitNames(); // This should remove the added unit name from the dropdown options
+
     // Reset fields after successful submission
     propertyUnitName.value = '';
     unitType.value = '';
