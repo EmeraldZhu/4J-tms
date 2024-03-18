@@ -48,6 +48,10 @@
                                         <div class="text-center mt-3 mb-3 text-xl font-semibold">Check-in Status</div>
                                         <div class="field p-fluid">
                                                 <FloatLabel>
+                                                        <Dropdown id="checkInStatus" v-model="tenant.checkInStatus" :options="checkInStatuses" optionLabel="name" placeholder="Checked In?" required></Dropdown>
+                                                        <label for="checkInStatus">Checked-in?</label>
+                                                </FloatLabel>
+                                                <FloatLabel>
                                                         <Calendar id="checkInDate" v-model="tenant.checkInDate" dateFormat="dd/mm/yy"></Calendar>
                                                         <label for="checkInDate">Check-in Date</label>
                                                 </FloatLabel>
@@ -113,12 +117,18 @@ const genders = [
   { name: 'Female', value: 'female' }
 ];
 
+const checkInStatuses = [
+  { name: 'Yes', value: 'yes' },
+  { name: 'No', value: 'no' }
+];
+
 const tenant = ref({
         fullNames: '',
         email: '',
         dob: null,
         idNumber: '',
         gender: null,
+        checkInStatus: null,
         checkInDate: null,
         checkOutDate: null,
 });
