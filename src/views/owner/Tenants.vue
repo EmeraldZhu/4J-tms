@@ -51,6 +51,7 @@
                                                         <Dropdown id="checkInStatus" v-model="tenant.checkInStatus" :options="checkInStatuses" optionLabel="name" placeholder="Checked In?" required></Dropdown>
                                                         <label for="checkInStatus">Checked-in?</label>
                                                 </FloatLabel>
+                                                <br>
                                                 <FloatLabel>
                                                         <Calendar id="checkInDate" v-model="tenant.checkInDate" dateFormat="dd/mm/yy"></Calendar>
                                                         <label for="checkInDate">Check-in Date</label>
