@@ -49,7 +49,7 @@
                                         <div class="field p-fluid">
                                                 <FloatLabel>
                                                         <Dropdown id="checkInStatus" v-model="tenant.checkInStatus" :options="checkInStatuses" optionLabel="name" placeholder="Checked In?" required></Dropdown>
-                                                        <label for="checkInStatus">Checked-in?</label>
+                                                        <label for="checkInStatus">Checked In?</label>
                                                 </FloatLabel>
                                                 <br>
                                                 <FloatLabel>
@@ -80,8 +80,6 @@
                                                         <Dropdown v-model="propertyName" editable :options="propertyNames" optionLabel="label" placeholder="Choose property" />
                                                 <div class="text-start mt-3 mb-3">Unit Name</div>
                                                         <Dropdown v-model="propertyUnitName" editable :options="unitNames" optionLabel="label" placeholder="Choose unit name" />
-                                                <div class="text-start mt-3 mb-3">Unit Type</div>
-                                                        <Dropdown v-model="unitType" editable :options="unitTypes" optionLabel="label" placeholder="Choose unit type" />
                                         </div>
                                 </div>
                                 <div class="flex pt-4 justify-content-between">
