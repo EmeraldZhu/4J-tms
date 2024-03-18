@@ -28,6 +28,7 @@
                                                         <InputText type="text" id="idNumber" v-model="tenant.idNumber" />
                                                         <label for="idNumber">ID Number</label>
                                                 </FloatLabel>
+                                                <br>
                                                 <FloatLabel>
                                                         <Dropdown id="gender" v-model="tenant.gender" :options="genders" optionLabel="name" placeholder="Select Gender" required></Dropdown>
                                                         <label for="gender">Gender</label>
@@ -50,6 +51,7 @@
                                                         <Calendar id="checkInDate" v-model="tenant.checkInDate" dateFormat="dd/mm/yy"></Calendar>
                                                         <label for="checkInDate">Check-in Date</label>
                                                 </FloatLabel>
+                                                <br>
                                                 <FloatLabel>
                                                         <Calendar id="checkOutDate" v-model="tenant.checkOutDate" dateFormat="dd/mm/yy"></Calendar>
                                                         <label for="checkOutDate">Check-out Date</label>
@@ -97,6 +99,7 @@ import StepperPanel from 'primevue/stepperpanel';
 import FloatLabel from 'primevue/floatlabel';
 import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
+import Button from 'primevue/button';
 import { getAuth } from 'firebase/auth';
 
 const auth = getAuth();
