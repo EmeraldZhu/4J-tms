@@ -94,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 import InputText from 'primevue/inputtext';
@@ -105,9 +105,11 @@ import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 
 const auth = getAuth();
 const user = auth.currentUser;
+const db = getFirestore();
 const toast = useToast();
 
 let isSubmitting = ref(false); // Track the submission status
@@ -133,6 +135,52 @@ const tenant = ref({
         checkOutDate: null,
 });
 
+// Refs for storing property and unit names
+const propertyNames = ref([]);
+const unitNames = ref([]);
+
+// Fetch properties on component mounted lifecycle hook
+onMounted(async () => {
+    if (user) {
+        const landlordPropertiesQuery = query(collection(db, 'properties'), where('createdBy', '==', user.uid));
+        const querySnapshot = await getDocs(landlordPropertiesQuery);
+        propertyNames.value = querySnapshot.docs.map(doc => ({
+            label: doc.data().name,
+            value: doc.id // Store Firestore document ID as value for later use
+        }));
+    }
+});
+
+// Reactive property to store the selected property ID
+const propertyName = ref('');
+const propertyUnitName = ref('');
+
+// Watcher to fetch unit names when a property is selected
+watch(propertyName, async (newValueObj) => {
+    const newValue = newValueObj.value;
+    console.log("Selected property ID:", newValue); // Debugging line 
+
+    if (newValue) {
+        const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', newValue));
+        const querySnapshot = await getDocs(unitsQuery);
+        // console.log("Query Snapshot:", querySnapshot);
+        // console.log("Units fetched:", querySnapshot.docs.map(doc => doc.data()));
+
+        // Map the documents to a format suitable for the Dropdown
+        unitNames.value = querySnapshot.docs.map(doc => ({
+            label: doc.data().propertyUnitName.label,
+            value: doc.id
+        }));
+    } else {
+        unitNames.value = []; // Reset unit names if no property is selected
+    }
+});
+
+// const hardcodedPropertyId = '2b001GVUmJTc0MhXlg8Q';
+// const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', hardcodedPropertyId));
+// const querySnapshot = await getDocs(unitsQuery);
+// console.log("Hardcoded query units fetched:", querySnapshot.docs.map(doc => doc.data()));
+
 const resetForm = () => {
     tenant.value = {
         fullNames: '',
@@ -144,8 +192,45 @@ const resetForm = () => {
         checkInDate: null,
         checkOutDate: null,
     };
-    // Reset any other states if necessary
+    propertyName.value = '';
+    propertyUnitName.value = '';
     isSubmitting.value = false;
+};
+
+const addTenant = async () => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+
+    // Validate required fields
+    if (!tenant.value.fullNames || !tenant.value.email || !tenant.value.gender) {
+        toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Please fill in all required fields.', life: 3000 });
+        isSubmitting.value = false;
+        return;
+    }
+
+    try {
+        // Prepare the data for Firestore
+        const tenantData = {
+                ...tenant.value,
+                dob: tenant.value.dob ? tenant.value.dob.toISOString() : null, // Convert date to ISO string
+                checkInDate: tenant.value.checkInDate ? tenant.value.checkInDate.toISOString() : null,
+                checkOutDate: tenant.value.checkOutDate ? tenant.value.checkOutDate.toISOString() : null,
+                createdBy: user ? user.uid : null,
+                propertyId: propertyName.value,
+                unitId: propertyUnitName.value,
+        };
+
+    
+        // Add a new document with a generated ID to the 'tenants' collection
+        await addDoc(collection(db, 'tenants'), tenantData);
+        toast.add({ severity: 'success', summary: 'Tenant Added', detail: 'The tenant has been successfully added.', life: 3000 });
+        resetForm();
+    } catch (error) {
+        console.error('Error adding tenant:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to add the tenant. Please try again.', life: 3000 });
+    } finally {
+        isSubmitting.value = false;
+    }
 };
 </script>
 
