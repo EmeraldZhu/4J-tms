@@ -26,7 +26,7 @@
                                                 <br>
                                                 <FloatLabel>
                                                         <InputText type="text" id="idNumber" v-model="tenant.idNumber" />
-                                                        <label for="idNumber">ID Number</label>
+                                                        <label for="idNumber">National ID Number</label>
                                                 </FloatLabel>
                                                 <br>
                                                 <FloatLabel>
@@ -52,12 +52,12 @@
                                                         <label for="checkInStatus">Checked In?</label>
                                                 </FloatLabel>
                                                 <br>
-                                                <FloatLabel>
+                                                <FloatLabel v-if="tenant.checkInStatus && tenant.checkInStatus.value === 'yes'">
                                                         <Calendar id="checkInDate" v-model="tenant.checkInDate" dateFormat="dd/mm/yy"></Calendar>
                                                         <label for="checkInDate">Check-in Date</label>
                                                 </FloatLabel>
-                                                <br>
-                                                <FloatLabel>
+                                                <br v-if="tenant.checkInStatus && tenant.checkInStatus.value === 'yes'">
+                                                <FloatLabel v-if="tenant.checkInStatus && tenant.checkInStatus.value === 'yes'">
                                                         <Calendar id="checkOutDate" v-model="tenant.checkOutDate" dateFormat="dd/mm/yy"></Calendar>
                                                         <label for="checkOutDate">Check-out Date</label>
                                                 </FloatLabel>
