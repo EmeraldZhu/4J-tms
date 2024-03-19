@@ -155,22 +155,32 @@ onMounted(async () => {
 const propertyName = ref('');
 const propertyUnitName = ref('');
 
-// Watcher to fetch unit names when a property is selected
+// Reactive ref to store the IDs of the occupied units
+const occupiedUnitIds = ref([]);
+
+// Fetch all tenant-occupied unit IDs when the component is mounted
+onMounted(async () => {
+    const tenantQuery = query(collection(db, 'tenants'));
+    const tenantSnapshot = await getDocs(tenantQuery);
+    occupiedUnitIds.value = tenantSnapshot.docs.map(tenantDoc => tenantDoc.data().unitId.value);
+});
+
+// Watcher to fetch unit names when a property is selected and filter out occupied units
 watch(propertyName, async (newValueObj) => {
     const newValue = newValueObj.value;
-    console.log("Selected property ID:", newValue); // Debugging line 
+    console.log("Selected property ID:", newValue);
 
     if (newValue) {
         const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', newValue));
-        const querySnapshot = await getDocs(unitsQuery);
-        // console.log("Query Snapshot:", querySnapshot);
-        // console.log("Units fetched:", querySnapshot.docs.map(doc => doc.data()));
-
-        // Map the documents to a format suitable for the Dropdown
-        unitNames.value = querySnapshot.docs.map(doc => ({
-            label: doc.data().propertyUnitName.label,
-            value: doc.id
-        }));
+        const unitSnapshot = await getDocs(unitsQuery);
+        
+        // Filter out units that have already been assigned
+        unitNames.value = unitSnapshot.docs
+            .filter(unitDoc => !occupiedUnitIds.value.includes(unitDoc.id))
+            .map(unitDoc => ({
+                label: unitDoc.data().propertyUnitName.label,
+                value: unitDoc.id
+            }));
     } else {
         unitNames.value = []; // Reset unit names if no property is selected
     }
