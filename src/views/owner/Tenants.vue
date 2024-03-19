@@ -84,7 +84,8 @@
                                 </div>
                                 <div class="flex pt-4 justify-content-between">
                                         <Button label="Back" severity="secondary" icon="pi pi-arrow-left" @click="prevCallback" />
-                                        <Button label="Add Tenant" icon="pi pi-plus-circle" @click="addTenant" :disabled="isSubmitting" /> 
+                                        <Button label="Add Tenant" icon="pi pi-plus-circle" @click="addTenant" :disabled="isSubmitting" />
+                                        <Button label="Reset" icon="pi pi-replay" @click="resetForm" /> 
                                 </div>
                         </template>
                 </StepperPanel>
@@ -131,6 +132,21 @@ const tenant = ref({
         checkInDate: null,
         checkOutDate: null,
 });
+
+const resetForm = () => {
+    tenant.value = {
+        fullNames: '',
+        email: '',
+        dob: null,
+        idNumber: '',
+        gender: null,
+        checkInStatus: null,
+        checkInDate: null,
+        checkOutDate: null,
+    };
+    // Reset any other states if necessary
+    isSubmitting.value = false;
+};
 </script>
 
 <style scoped>
