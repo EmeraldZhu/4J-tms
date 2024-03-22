@@ -328,8 +328,24 @@ const editTenant = (tenant) => {
   // Implement tenant editing logic
 };
 
-const deleteTenant = (tenant) => {
-  // Implement tenant deletion logic
+const deleteTenant = async (tenant) => {
+  if (!confirm(`Are you sure you want to delete ${tenant.fullNames}? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    // Assuming `tenant.id` is the document ID of the tenant in Firestore
+    await deleteDoc(doc(db, 'tenants', tenant.id));
+    toast.add({ severity: 'success', summary: 'Tenant Deleted', detail: 'The tenant has been successfully deleted.', life: 3000 });
+
+    // Refresh the tenants list for the currently selected property
+    if (selectedProperty.value) {
+      await fetchTenantsForProperty(selectedProperty.value.id);
+    }
+  } catch (error) {
+    console.error('Error deleting tenant:', error);
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete the tenant. Please try again.', life: 3000 });
+  }
 };
 </script>
 
