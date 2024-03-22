@@ -426,8 +426,22 @@ const editingTenant = ref({});
 
 const updateTenant = async () => {
     // Assume editingTenant.value has an id property
+    if (editingTenant.value.checkInStatus.value === 'no') {
+        editingTenant.value.checkInDate = null;
+        editingTenant.value.checkOutDate = null;
+    }
+
     const tenantRef = doc(db, 'tenants', editingTenant.value.id);
     try {
+        // Prepare the tenant data for update, ensuring dates are in a suitable format
+        const updateData = {
+            ...editingTenant.value,
+            // Firestore expects JavaScript Date objects or null for date fields
+            checkInDate: editingTenant.value.checkInDate,
+            checkOutDate: editingTenant.value.checkOutDate,
+            // Convert other necessary fields as needed
+        };
+        
         await updateDoc(tenantRef, editingTenant.value);
         toast.add({ severity: 'success', summary: 'Tenant Updated', detail: 'The tenant has been successfully updated.', life: 3000 });
         overlayPanel.value.hide();
