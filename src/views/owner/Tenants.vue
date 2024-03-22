@@ -116,12 +116,75 @@
                 <Column field="checkInStatus.name" header="Status"></Column>
                 <Column header="Action">
                         <template #body="slotProps">
-                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editTenant(slotProps.data)" />
+                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editTenant($event, slotProps.data)" />
                                 <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" @click="deleteTenant(slotProps.data)" />
                         </template>
                 </Column>
         </DataTable>
 </div>
+
+<OverlayPanel ref="overlayPanel">
+    <div class="form">
+        <!-- Full Names -->
+        <FloatLabel>
+            <InputText type="text" id="editFullNames" v-model="editingTenant.fullNames" required />
+            <label for="editFullNames">Full names*</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Email -->
+        <FloatLabel>
+            <InputText type="email" id="editEmail" v-model="editingTenant.email" required />
+            <label for="editEmail">Email*</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Date of Birth -->
+        <FloatLabel>
+            <Calendar id="editDob" v-model="editingTenant.dob" dateFormat="dd/mm/yy"></Calendar>
+            <label for="editDob">Date of Birth</label>
+        </FloatLabel>
+        <br>
+
+        <!-- National ID Number -->
+        <FloatLabel>
+            <InputText type="text" id="editIdNumber" v-model="editingTenant.idNumber" />
+            <label for="editIdNumber">National ID Number</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Gender -->
+        <FloatLabel>
+            <Dropdown id="editGender" v-model="editingTenant.gender" :options="genders" optionLabel="name" placeholder="Select Gender" required></Dropdown>
+            <label for="editGender">Gender</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Check-in Status -->
+        <FloatLabel>
+            <Dropdown id="editCheckInStatus" v-model="editingTenant.checkInStatus" :options="checkInStatuses" optionLabel="name" placeholder="Checked In?" required></Dropdown>
+            <label for="editCheckInStatus">Checked In?</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Check-in Date -->
+        <FloatLabel v-if="editingTenant.checkInStatus && editingTenant.checkInStatus.value === 'yes'">
+            <Calendar id="editCheckInDate" v-model="editingTenant.checkInDate" dateFormat="dd/mm/yy"></Calendar>
+            <label for="editCheckInDate">Check-in Date</label>
+        </FloatLabel>
+        <br v-if="editingTenant.checkInStatus && editingTenant.checkInStatus.value === 'yes'">
+
+        <!-- Check-out Date -->
+        <FloatLabel v-if="editingTenant.checkInStatus && editingTenant.checkInStatus.value === 'yes'">
+            <Calendar id="editCheckOutDate" v-model="editingTenant.checkOutDate" dateFormat="dd/mm/yy"></Calendar>
+            <label for="editCheckOutDate">Check-out Date</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Update Tenant Button -->
+        <Button label="Update Tenant" @click="updateTenant" />
+    </div>
+</OverlayPanel>
 </template>
 
 <script setup>
@@ -137,8 +200,9 @@ import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import OverlayPanel from 'primevue/overlaypanel';       
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 
 const auth = getAuth();
 const user = auth.currentUser;
@@ -323,9 +387,9 @@ watch(() => selectedProperty.value?.id, (newId) => {
   }
 }, { deep: true });
 
-// Functions for editTenant and deleteTenant actions
-const editTenant = (tenant) => {
-  // Implement tenant editing logic
+const editTenant = (event, tenant) => {
+    editingTenant.value = { ...tenant };
+    overlayPanel.value.show(event);
 };
 
 const deleteTenant = async (tenant) => {
@@ -346,6 +410,23 @@ const deleteTenant = async (tenant) => {
     console.error('Error deleting tenant:', error);
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete the tenant. Please try again.', life: 3000 });
   }
+};
+
+const overlayPanel = ref(null);
+const editingTenant = ref({});
+
+const updateTenant = async () => {
+    // Assume editingTenant.value has an id property
+    const tenantRef = doc(db, 'tenants', editingTenant.value.id);
+    try {
+        await updateDoc(tenantRef, editingTenant.value);
+        toast.add({ severity: 'success', summary: 'Tenant Updated', detail: 'The tenant has been successfully updated.', life: 3000 });
+        overlayPanel.value.hide();
+        fetchTenantsForProperty(selectedProperty.value.id); // Refresh tenant list
+    } catch (error) {
+        console.error('Error updating tenant:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to update the tenant. Please try again.', life: 3000 });
+    }
 };
 </script>
 
