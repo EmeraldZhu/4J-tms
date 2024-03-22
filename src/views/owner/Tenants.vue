@@ -442,7 +442,7 @@ const updateTenant = async () => {
             // Convert other necessary fields as needed
         };
         
-        await updateDoc(tenantRef, editingTenant.value);
+        await updateDoc(tenantRef, updateData);
         toast.add({ severity: 'success', summary: 'Tenant Updated', detail: 'The tenant has been successfully updated.', life: 3000 });
         overlayPanel.value.hide();
         fetchTenantsForProperty(selectedProperty.value.id); // Refresh tenant list
