@@ -283,10 +283,6 @@ watch(propertyName, async (newValueObj) => {
     }
 });
 
-// const hardcodedPropertyId = '2b001GVUmJTc0MhXlg8Q';
-// const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', hardcodedPropertyId));
-// const querySnapshot = await getDocs(unitsQuery);
-// console.log("Hardcoded query units fetched:", querySnapshot.docs.map(doc => doc.data()));
 
 const resetForm = () => {
     tenant.value = {
@@ -371,7 +367,20 @@ const fetchTenantsForProperty = async (propertyId) => {
   const q = query(collection(db, 'tenants'), where('propertyId.value', '==', propertyId));
   try {
     const querySnapshot = await getDocs(q);
-    const fetchedTenants = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    //const fetchedTenants = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const fetchedTenants = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      // Convert Timestamps to JavaScript Date objects
+      // Helper function to safely convert potential Firestore Timestamps to Date objects
+      const toDate = (timestamp) => timestamp?.toDate ? timestamp.toDate() : timestamp;
+      return {
+        ...data,
+        checkInDate: toDate(data.checkInDate),
+        checkOutDate: toDate(data.checkOutDate),
+        dob: toDate(data.dob), // Convert dob as well if stored as Timestamp
+        id: doc.id // include the document ID
+      };
+    });
     console.log("Tenants fetched:", fetchedTenants);
     tenants.value = fetchedTenants;
   } catch (error) {
