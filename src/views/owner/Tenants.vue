@@ -91,6 +91,37 @@
                 </StepperPanel>
         </Stepper>       
 </div>
+<br>
+<h1>Tenants</h1>
+<div class="property-selector">
+        <Dropdown v-model="selectedProperty" :options="landlordProperties" optionLabel="label" placeholder="Select a property" />
+</div>
+<br>
+<div class="tenants-datatable">
+        <DataTable v-model:filters="filters" :value="tenants" :paginator="true" :rows="10">
+                <Column field="fullNames" header="Name"></Column>
+                <Column field="idNumber" header="ID Number"></Column>
+                <Column field="propertyId.label" header="Property"></Column>
+                <Column field="unitId.label" header="Unit"></Column>
+                <Column field="checkInDate" header="Check-in">
+                        <template #body="slotProps">
+                                {{ slotProps.data.checkInDate ? new Date(slotProps.data.checkInDate).toLocaleDateString() : '' }}
+                        </template>
+                </Column>
+                <Column field="checkOutDate" header="Check-out">
+                        <template #body="slotProps">
+                                {{ slotProps.data.checkOutDate ? new Date(slotProps.data.checkOutDate).toLocaleDateString() : '' }}
+                        </template>
+                </Column>
+                <Column field="checkInStatus.name" header="Status"></Column>
+                <Column header="Action">
+                        <template #body="slotProps">
+                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editTenant(slotProps.data)" />
+                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" @click="deleteTenant(slotProps.data)" />
+                        </template>
+                </Column>
+        </DataTable>
+</div>
 </template>
 
 <script setup>
@@ -104,6 +135,8 @@ import FloatLabel from 'primevue/floatlabel';
 import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 
@@ -241,6 +274,62 @@ const addTenant = async () => {
     } finally {
         isSubmitting.value = false;
     }
+};
+
+const filters = ref({});
+const landlordProperties = ref([]); // Assume this is populated with the landlord's properties
+const selectedProperty = ref(null);
+const tenants = ref([]); // Assume this is populated with tenants from Firestore
+const filteredTenants = ref([]);
+
+const fetchLandlordProperties = async () => {
+        if (!user) return;
+        const q = query(collection(db, 'properties'), where('createdBy', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+        landlordProperties.value = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                label: doc.data().name,
+        }));
+};
+
+onMounted(fetchLandlordProperties);
+
+// Function to fetch tenants based on selected property
+const fetchTenantsForProperty = async (propertyId) => {
+  // Fetch tenants from Firestore where propertyId matches and update filteredTenants
+  console.log("Fetching tenants for property:", propertyId);
+  if (!propertyId) {
+        console.log("No propertyId provided");
+        tenants.value = [];
+        return;
+  }
+
+  const q = query(collection(db, 'tenants'), where('propertyId.value', '==', propertyId));
+  try {
+    const querySnapshot = await getDocs(q);
+    const fetchedTenants = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log("Tenants fetched:", fetchedTenants);
+    tenants.value = fetchedTenants;
+  } catch (error) {
+    console.error("Error fetching tenants:", error);
+  }
+};
+
+// Watcher to fetch tenants when a property is selected
+watch(() => selectedProperty.value?.id, (newId) => {
+  if (newId) {
+    console.log("Property ID selected:", newId);
+    fetchTenantsForProperty(newId);
+  }
+}, { deep: true });
+
+// Functions for editTenant and deleteTenant actions
+const editTenant = (tenant) => {
+  // Implement tenant editing logic
+};
+
+const deleteTenant = (tenant) => {
+  // Implement tenant deletion logic
 };
 </script>
 
