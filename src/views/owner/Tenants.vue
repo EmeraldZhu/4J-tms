@@ -181,6 +181,20 @@
         </FloatLabel>
         <br>
 
+        <!-- Property Selection -->
+        <FloatLabel>
+            <Dropdown id="editPropertyName" v-model="editingTenant.propertyId" :options="propertyNames" optionLabel="label" placeholder="Select Property" @change="onPropertyChange" />
+            <label for="editPropertyName">Property*</label>
+        </FloatLabel>
+        <br>
+
+        <!-- Unit Name -->
+        <FloatLabel>
+            <Dropdown id="editUnitName" v-model="editingTenant.unitId" :options="unitNames" optionLabel="label" placeholder="Select Unit" />
+            <label for="editUnitName">Unit*</label>
+        </FloatLabel>
+        <br>
+
         <!-- Update Tenant Button -->
         <Button label="Update Tenant" @click="updateTenant" />
     </div>
@@ -423,6 +437,47 @@ const deleteTenant = async (tenant) => {
 
 const overlayPanel = ref(null);
 const editingTenant = ref({});
+
+const onPropertyChange = async (event) => {
+    // Extract the selected property's value from the event object
+    const selectedPropertyId = event.value.value; // First value is the Proxy object, second value is the property ID
+
+    console.log("Property ID changed to:", selectedPropertyId);
+
+    if (!selectedPropertyId) {
+        unitNames.value = [];
+        return;
+    }
+
+    // Initially fetch all units for the selected property
+    const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', selectedPropertyId));
+    let fetchedUnits = [];
+    try {
+        const querySnapshot = await getDocs(unitsQuery);
+        fetchedUnits = querySnapshot.docs.map(doc => ({
+            label: doc.data().propertyUnitName.label,
+            value: doc.id
+        }));
+    } catch (error) {
+        console.error("Error fetching units:", error);
+    }
+
+    // Now filter out units that are occupied, but keep the unit if it's the current tenant's
+    if (editingTenant.value && editingTenant.value.unitId) {
+        const tenantUnitQuery = query(collection(db, 'tenants'), where('unitId', '==', editingTenant.value.unitId));
+        let tenantUnitDocSnapshot = await getDocs(tenantUnitQuery);
+        let occupiedUnitIdsExceptCurrentTenant = occupiedUnitIds.value.filter(occupiedUnitId => 
+            !tenantUnitDocSnapshot.docs.find(doc => doc.id === editingTenant.value.id && doc.data().unitId === occupiedUnitId));
+
+        unitNames.value = fetchedUnits.filter(unit => 
+            !occupiedUnitIdsExceptCurrentTenant.includes(unit.value) || editingTenant.value.unitId === unit.value);
+    } else {
+        // If we are not in the context of editing a specific tenant, apply general filter
+        unitNames.value = fetchedUnits.filter(unit => !occupiedUnitIds.value.includes(unit.value));
+    }
+
+    console.log("Updated unitNames:", unitNames.value);
+};
 
 const updateTenant = async () => {
     // Assume editingTenant.value has an id property
