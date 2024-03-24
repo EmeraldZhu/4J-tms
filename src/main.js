@@ -5,6 +5,7 @@ import router from './router';
 import { store } from './store';
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
 
 import "primeflex/primeflex.css";
 import 'primevue/resources/themes/saga-blue/theme.css'; // Theme
@@ -17,5 +18,6 @@ app.use(PrimeVue);
 app.use(store);
 app.use(router);
 app.use(ToastService);
+app.use(ConfirmationService);
 
 app.mount('#app');
