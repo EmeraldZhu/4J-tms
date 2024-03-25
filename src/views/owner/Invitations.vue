@@ -63,7 +63,8 @@ const sendInvitation = async () => {
     // Optionally link the tenant's Firestore record with their Firebase Auth UID here
     querySnapshot.forEach(async (docSnapshot) => {
       await updateDoc(doc(db, "tenants", docSnapshot.id), {
-        authUid: userCredential.user.uid
+        authUid: userCredential.user.uid,
+        role: 'tenant'
       });
     });
 

@@ -1,37 +1,38 @@
 <template>
-  <div class="dashboard" v-if="!isLoading">
-    <!-- Permanent Sidebar -->
-    <div class="sidebar">
-      <ul class="menu-list">
-        <li v-for="item in menuItems" :key="item.label">
-          <router-link :to="item.to">
-            <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
-          </router-link>
-        </li>
-      </ul>
-    </div>
+    <div class="dashboard" v-if="!isLoading">
+        <!-- Permanent Sidebar -->
+        <div class="sidebar">
+            <ul class="menu-list">
+                <li v-for="item in menuItems" :key="item.label">
+                    <router-link :to="item.to">
+                        <i :class="item.icon"></i>
+                        <span>{{ item.label }}</span>
+                    </router-link>
+                </li>
+            </ul>
+        </div>
 
-    <!-- Top Bar/Header -->
-    <div class="topbar">
-      <div><br><br></div>
-      <div class="user-profile">
-        <!-- This will show initials if no image is present, and an image if there's one -->
-        <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle" @click="op.toggle($event)" class="clickable-avatar" />
-        <OverlayPanel ref="op">
-          <Button label="Logout" icon="pi pi-sign-out" @click="logout" />
-        </OverlayPanel>
-      </div>
-    </div>
+        <!-- Top Bar/Header -->
+        <div class="topbar">
+            <div><br><br></div>
+            <div class="user-profile">
+                <!-- This will show initials if no image is present, and an image if there's one -->
+                <Avatar v-if="user" :image="user.photoURL" :label="user.initials" size="large" shape="circle"
+                    @click="op.toggle($event)" class="clickable-avatar" />
+                <OverlayPanel ref="op">
+                    <Button label="Logout" icon="pi pi-sign-out" @click="logout" />
+                </OverlayPanel>
+            </div>
+        </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <router-view />
+        <!-- Main Content -->
+        <div class="main-content">
+            <router-view />
+        </div>
     </div>
-  </div>
-  <div v-else>
-    Loading...
-  </div>
+    <div v-else>
+        Loading...
+    </div>
 </template>
 
 <script setup>
@@ -44,14 +45,14 @@ import OverlayPanel from 'primevue/overlaypanel';
 
 const store = useStore();
 const router = useRouter();
-const isLoading = computed(() => store.state.isLoading); // Access the loading state from the store
+const isLoading = computed(() => store.state.isLoading);
 
 const op = ref(null);
 
 const logout = async () => {
   try {
     await store.dispatch('logout');
-    router.push('/login/owner');
+    router.push('/login/tenant');
   } catch (error) {
     console.error('Error during logout:', error);
   }
@@ -60,8 +61,10 @@ const logout = async () => {
 const user = computed(() => {
   const userData = store.state.user;
   if (userData) {
+    // Split the full name into first name and last name
+    const [firstName, lastName] = userData.fullNames.split(' ');
     // Safely extract the first character from the first name and last name
-    const initials = `${userData.firstName?.[0] ?? 'U'}${userData.lastName?.[0] ?? 'N'}`;
+    const initials = `${firstName?.[0] ?? 'U'}${lastName?.[0] ?? 'N'}`;
     const photoURL = userData.photoURL || null;
     return { ...toRefs(userData), initials, photoURL };
   }
@@ -69,12 +72,9 @@ const user = computed(() => {
 });
 
 const menuItems = ref([
-  { label: 'Dashboard', to: '/owner', icon: 'pi pi-fw pi-th-large' },
-  { label: 'Properties', to: '/owner/properties', icon: 'pi pi-fw pi-building' },
-  { label: 'Tenants', to: '/owner/tenants', icon: 'pi pi-fw pi-users' },
-  { label: 'Invitations', to: '/owner/invitations', icon: 'pi pi-fw pi-envelope' },
-  { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-inbox' },
-  { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-ticket' },
+  { label: 'Dashboard', to: '/tenant', icon: 'pi pi-fw pi-th-large' },
+  { label: 'Notice Board', to: '/tenant/notice-board', icon: 'pi pi-fw pi-inbox' },
+  { label: 'Maintenance Tickets', to: '/tenant/maintenance', icon: 'pi pi-fw pi-ticket' },
   // ... other menu items
 ]);
 

@@ -1,26 +1,26 @@
 <template>
-  <div class="login-page">
-    <Toast />
-    <div class="login-form-container">
-      <h1 class="login-title">Landlord Login</h1>
-      <form @submit.prevent="login" class="login-form">
-        <div class="p-field">
-          <InputText id="email" v-model="credentials.email" placeholder="Email *" required />
+    <div class="login-page">
+        <Toast />
+        <div class="login-form-container">
+            <h1 class="login-title">Tenant Login</h1>
+            <form @submit.prevent="login" class="login-form">
+                <div class="p-field">
+                    <InputText id="email" v-model="credentials.email" placeholder="Email *" required />
+                </div>
+                <div class="p-field">
+                    <Password id="password" v-model="credentials.password" placeholder="Password" required toggleMask
+                        :feedback="false" />
+                </div>
+                <Button type="submit" label="LOGIN" class="login-button" />
+                <div class="login-footer">
+                    <router-link to="/reset-password/tenant" class="forgot-password">Forgot Password?</router-link>
+                </div>
+            </form>
         </div>
-        <div class="p-field">
-          <Password id="password" v-model="credentials.password" placeholder="Password" required toggleMask :feedback="false" />
+        <div class="login-image">
+            <img src="../../assets/login-image.svg" alt="Login" />
         </div>
-        <Button type="submit" label="LOGIN" class="login-button" />
-        <div class="login-footer">
-          <router-link to="/reset-password/owner" class="forgot-password">Forgot Password?</router-link>
-          <router-link to="/register/owner" class="register-link">Don't have an account? Register</router-link>
-        </div>
-      </form>
     </div>
-    <div class="login-image">
-      <img src="../../assets/login-image.svg" alt="Login" />
-    </div>
-  </div>
 </template>
 
 <script setup>
@@ -46,13 +46,11 @@ const credentials = ref({
 
 const login = async () => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, credentials.value.email, credentials.value.password);
-    // Display a success toast message
+    // Dispatch an action to handle tenant login
+    await store.dispatch('loginTenant', credentials.value);
     toast.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome!', life: 3000 });
-    // Assuming you have a Vuex mutation to set the user
-    store.commit('setUser', userCredential.user);
     setTimeout(() => {
-      router.push('/owner');
+      router.push('/tenant');
     }, 1500); // Waits a bit longer than the toast life to navigate
   } catch (error) {
     console.error('Login error:', error.message);
@@ -177,6 +175,4 @@ onMounted(() => {
     height: auto;
   }
 }
-
-/* Add any additional styles to match your design */
 </style>

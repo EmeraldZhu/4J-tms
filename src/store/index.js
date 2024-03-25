@@ -1,7 +1,7 @@
 import { createStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, collection, where, getDocs, query } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Initialize Firebase services
@@ -15,11 +15,15 @@ export const store = createStore({
       user: null,
       isLoading: false, // add loading state
       showLogoutToast: false,
+      role: null,
     };
   },
   mutations: {
     setUser(state, user) {
       state.user = user;
+    },
+    setRole(state, role) {
+      state.role = role;
     },
     setLoading(state, isLoading) {
       state.isLoading = isLoading; // Add mutation to set loading state
@@ -58,7 +62,7 @@ export const store = createStore({
         }
 
         // Combine userDetails with the image URL
-        const userData = { ...userDetails, profileImageUrl: imageUrl };
+        const userData = { ...userDetails, profileImageUrl: imageUrl, role: 'landlord' };
 
         // Save user details to Firestore, including the image URL
         await setDoc(doc(db, 'landlords', user.uid), userData);
@@ -77,17 +81,30 @@ export const store = createStore({
         // Listen for user auth state changes
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            // User is signed in, get their data from Firestore
-            const docRef = doc(db, 'landlords', user.uid);
-            const docSnap = await getDoc(docRef);
+            // Attempt to fetch from landlords collection first
+            let docRef = doc(db, 'landlords', user.uid);
+            let docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+              // If not found, attempt to fetch from tenants collection
+              const tenantsQuery = query(collection(db, "tenants"), where("authUid", "==", user.uid));
+              const querySnapshot = await getDocs(tenantsQuery);
+
+              if (!querySnapshot.empty) {
+                // Assuming email uniqueness, we can directly access the first document
+                docSnap = querySnapshot.docs[0];
+              }
+            }
 
             if (docSnap.exists()) {
-              // User data exists in Firestore, commit to Vuext state
+              // User data exists in Firestore, commit to Vuex state
               const userData = docSnap.data();
-              commit('setUser', { uid: user.uid, email: user.email, profileImageUrl: userData.profileImageUrl, ...userData });
+              commit('setUser', { uid: user.uid, email: user.email, ...userData });
+              commit('setRole', userData.role);
             } else {
-              // // User data does not exist in Firestore
+              // User data does not exist in Firestore
               console.log('No such document!');
+              commit('setUser', null);
             }
           } else {
             // User is signed out, clear Vuex state
@@ -97,6 +114,32 @@ export const store = createStore({
         });
       } catch (error) {
         console.error('Fetch user error:', error.message);
+        commit('setLoading', false);
+        throw error;
+      }
+    },
+
+    async loginTenant({ commit }, { email, password }) {
+      console.log('Attempting tenant login with email:', email);
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        console.log('User signed in successfully:', userCredential.user.uid);
+        // The user's email is used to log in, so we use it to fetch the tenant document
+        const tenantsQuery = query(collection(db, "tenants"), where("email", "==", email));
+        const querySnapshot = await getDocs(tenantsQuery);
+        console.log('Fetched tenant document:', querySnapshot.empty);
+    
+        if (!querySnapshot.empty) {
+          const tenantDoc = querySnapshot.docs[0];
+          console.log('Tenant document data:', tenantDoc.data()); // Debugging statement 4
+          commit('setUser', { uid: userCredential.user.uid, email, ...tenantDoc.data() });
+          commit('setRole', tenantDoc.data().role);
+          console.log('User and role committed to Vuex'); // Debugging statement 5
+        } else {
+          throw new Error('No user document found');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
         throw error;
       }
     },
