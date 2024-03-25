@@ -42,18 +42,18 @@
         </template>
       </Card>
 
-      <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
+      <!-- <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
         style="width: 20rem; height: 10rem;">
         <template #title>
-          Properties with Vacant Units
+          Vacant Units
         </template>
         <template #content>
           <div class="flex align-items-center justify-content-center">
-            <i class="pi pi-home p-mr-2" style="font-size: 2em;"></i>
-            <h2>{{ propertiesWithVacantUnits }}</h2>
+            <i class="pi pi-box p-mr-2" style="font-size: 2em;"></i>
+            <h2>{{ vacantUnits }}</h2>
           </div>
         </template>
-      </Card>
+      </Card> -->
     </div>
   </div>
 
@@ -342,7 +342,7 @@ const totalUnits = ref(0);
 const totalTenants = ref(0);
 const totalRentPrice = ref(0);
 const avgRentPrice = ref(0);
-const propertiesWithVacantUnits = ref(0);
+// const vacantUnits = ref(0);
 
 const fetchData = async () => {
   if (!user) return;
@@ -372,25 +372,19 @@ const fetchData = async () => {
 
 onMounted(fetchData);
 
-const fetchPropertiesWithVacantUnits = async () => {
-  // Step 1: Fetch all units
-  const unitsSnapshot = await getDocs(collection(db, 'units'));
-  const allUnits = unitsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+// const fetchVacantUnits = async () => {
+//   // Fetch all units
+//   const unitsSnapshot = await getDocs(collection(db, 'units'));
+//   const allUnits = unitsSnapshot.docs.map(doc => doc.id);
 
-  // Step 2: Fetch all tenants
-  const tenantsSnapshot = await getDocs(collection(db, 'tenants'));
-  const allTenants = tenantsSnapshot.docs.map(doc => ({ ...doc.data(), unitId: doc.data().unitId.value }));
+//   // Fetch all tenants
+//   const tenantsSnapshot = await getDocs(collection(db, 'tenants'));
+//   const occupiedUnits = tenantsSnapshot.docs.map(doc => doc.data().unitId.value);
 
-  // Create a set of occupied unit IDs for quick lookup
-  const occupiedUnitsSet = new Set(allTenants.map(tenant => tenant.unitId));
+//   // Identify vacant units by filtering out occupied ones
+//   const vacantUnitsSet = new Set([...allUnits].filter(x => !occupiedUnits.includes(x)));
+//   vacantUnits.value = vacantUnitsSet.size;
+// };
 
-  // Step 3: Identify vacant units by checking against the occupied units set
-  const vacantUnits = allUnits.filter(unit => !occupiedUnitsSet.has(unit.id));
-
-  // Step 4: Count unique properties with at least one vacant unit
-  const propertiesSet = new Set(vacantUnits.map(unit => unit.propertyName.value));
-  propertiesWithVacantUnits.value = propertiesSet.size;
-};
-
-onMounted(fetchPropertiesWithVacantUnits);
+// onMounted(fetchVacantUnits);
 </script>
