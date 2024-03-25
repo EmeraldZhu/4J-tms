@@ -1,5 +1,63 @@
 <template>
   <div class="grid">
+    <!-- KPI Dashboard Cards -->
+    <div class="flex justify-content-around flex-wrap">
+      <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
+        style="width: 20rem; height: 10rem;">
+        <template #title>
+          Total Properties
+        </template>
+        <template #content>
+          <h3>{{ totalProperties }}</h3>
+        </template>
+      </Card>
+
+      <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
+        style="width: 20rem; height: 10rem;">
+        <template #title>
+          Total Units
+        </template>
+        <template #content>
+          <h3>{{ totalUnits }}</h3>
+        </template>
+      </Card>
+
+      <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
+        style="width: 20rem; height: 10rem;">
+        <template #title>
+          Total Tenants
+        </template>
+        <template #content>
+          <h3>{{ totalTenants }}</h3>
+        </template>
+      </Card>
+
+      <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
+        style="width: 20rem; height: 10rem;">
+        <template #title>
+          Average Rent Price
+        </template>
+        <template #content>
+          <h3>{{ avgRentPrice | currency }}</h3>
+        </template>
+      </Card>
+
+      <Card class="flex align-items-center justify-content-center flex-column p-3 m-2"
+        style="width: 20rem; height: 10rem;">
+        <template #title>
+          Properties with Vacant Units
+        </template>
+        <template #content>
+          <div class="flex align-items-center justify-content-center">
+            <i class="pi pi-home p-mr-2" style="font-size: 2em;"></i>
+            <h2>{{ propertiesWithVacantUnits }}</h2>
+          </div>
+        </template>
+      </Card>
+    </div>
+  </div>
+
+  <div class="grid">
     <Toast />
     <ConfirmPopup></ConfirmPopup>
     <OverlayPanel ref="op" :showCloseIcon="true" class="overlaypanel-demo" appendTo="body">
@@ -116,6 +174,7 @@ import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import Card from 'primevue/card';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 
@@ -236,10 +295,10 @@ const updateUnit = async () => {
       rentPrice: selectedUnit.value.rentPrice
     };
     await updateDoc(doc(db, 'units', selectedUnit.value.id), updatedUnit);
-      // propertyName: { label: landlordProperties.value.find(p => p.value === selectedUnit.value.propertyName.value).label, value: selectedUnit.value.propertyName.value },
-      // propertyUnitName: { ...selectedUnit.value.propertyUnitName },
-      // unitType: { label: unitTypes.value.find(ut => ut.value === selectedUnit.value.unitType.value).label, value: selectedUnit.value.unitType.value },
-      // rentPrice: selectedUnit.value.rentPrice
+    // propertyName: { label: landlordProperties.value.find(p => p.value === selectedUnit.value.propertyName.value).label, value: selectedUnit.value.propertyName.value },
+    // propertyUnitName: { ...selectedUnit.value.propertyUnitName },
+    // unitType: { label: unitTypes.value.find(ut => ut.value === selectedUnit.value.unitType.value).label, value: selectedUnit.value.unitType.value },
+    // rentPrice: selectedUnit.value.rentPrice
     toast.add({ severity: 'success', summary: 'Success', detail: 'Unit updated successfully.', life: 3000 });
     fetchUnits(selectedProperty.value);
     opUnit.value.hide(); // Close the OverlayPanel
@@ -253,4 +312,62 @@ onMounted(() => {
   fetchUnitTypes();
   fetchProperties();
 });
+
+// KPI reactive variables
+const totalProperties = ref(0);
+const totalUnits = ref(0);
+const totalTenants = ref(0);
+const totalRentPrice = ref(0);
+const avgRentPrice = ref(0);
+const propertiesWithVacantUnits = ref(0);
+
+const fetchData = async () => {
+  if (!user) return;
+
+  // Fetch Properties
+  const propertiesQuery = query(collection(db, 'properties'), where('createdBy', '==', user.uid));
+  const propertiesSnapshot = await getDocs(propertiesQuery);
+  totalProperties.value = propertiesSnapshot.docs.length;
+
+  // Fetch Units and calculate total rent
+  const unitsQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid));
+  const unitsSnapshot = await getDocs(unitsQuery);
+  totalUnits.value = unitsSnapshot.docs.length;
+  totalRentPrice.value = unitsSnapshot.docs.reduce((total, doc) => {
+    const rentPrice = parseFloat(doc.data().rentPrice); // Ensure rentPrice is treated as a number
+    return total + (isNaN(rentPrice) ? 0 : rentPrice); // Only add to total if rentPrice is a number
+  }, 0);
+
+  // Calculate Average Rent Price
+  avgRentPrice.value = totalUnits.value > 0 ? (totalRentPrice.value / totalUnits.value) : 0;
+
+  // Fetch Tenants
+  const tenantsQuery = query(collection(db, 'tenants'), where('createdBy', '==', user.uid));
+  const tenantsSnapshot = await getDocs(tenantsQuery);
+  totalTenants.value = tenantsSnapshot.docs.length;
+};
+
+onMounted(fetchData);
+
+const fetchPropertiesWithVacantUnits = async () => {
+  // Step 1: Fetch all units
+  const unitsSnapshot = await getDocs(collection(db, 'units'));
+  const allUnits = unitsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+
+  // Step 2: Fetch all tenants
+  const tenantsSnapshot = await getDocs(collection(db, 'tenants'));
+  const allTenants = tenantsSnapshot.docs.map(doc => ({ ...doc.data(), unitId: doc.data().unitId.value }));
+
+  // Create a set of occupied unit IDs for quick lookup
+  const occupiedUnitsSet = new Set(allTenants.map(tenant => tenant.unitId));
+
+  // Step 3: Identify vacant units by checking against the occupied units set
+  const vacantUnits = allUnits.filter(unit => !occupiedUnitsSet.has(unit.id));
+
+  // Step 4: Count unique properties with at least one vacant unit
+  const propertiesSet = new Set(vacantUnits.map(unit => unit.propertyName.value));
+  propertiesWithVacantUnits.value = propertiesSet.size;
+};
+
+onMounted(fetchPropertiesWithVacantUnits);
 </script>
