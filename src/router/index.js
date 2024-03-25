@@ -10,6 +10,7 @@ import Maintenance from '../views/owner/Maintenance.vue';
 import NoticeBoard from '../views/owner/NoticeBoard.vue';
 import Properties from '../views/owner/Properties.vue';
 import Tenants from '../views/owner/Tenants.vue';
+import Invitations from '../views/owner/Invitations.vue';
 
 const routes = [
   {
@@ -60,6 +61,11 @@ const routes = [
         path: 'tenants',
         name: 'OwnerTenants',
         component: Tenants,
+      },
+      {
+        path: 'invitations',
+        name: 'OwnerInvitations',
+        component: Invitations,
       },
     ]
   },
