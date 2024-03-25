@@ -51,6 +51,9 @@ const login = async () => {
     toast.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome!', life: 3000 });
     // Assuming you have a Vuex mutation to set the user
     store.commit('setUser', userCredential.user);
+    // Explicitly set the role as 'landlord' in Vuex store
+    store.commit('setRole', 'landlord');
+    store.commit('setDataLoaded', true); // Indicate that user data is loaded
     setTimeout(() => {
       router.push('/owner');
     }, 1500); // Waits a bit longer than the toast life to navigate

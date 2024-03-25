@@ -1,5 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
+import { store } from '../store/index.js';
 import HomePage from '../views/HomePage.vue';
 import RegisterOwner from '../views/auth/RegisterOwner.vue';
 import LoginOwner from '../views/auth/LoginOwner.vue';
@@ -52,6 +53,7 @@ const routes = [
   {
     path: '/owner',
     component: OwnerDashboardLayout,
+    meta: { requiresRole: 'landlord' },
     children: [
       {
         path: 'properties',
@@ -88,6 +90,7 @@ const routes = [
   {
     path: '/tenant',
     component: TenantDashboardLayout,
+    meta: { requiresRole: 'tenant' },
     children: [
       {
         path: '',
@@ -113,6 +116,23 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Navigation Guard
+router.beforeEach((to, from, next) => {
+  // Directly retrieve the user role from Vuex state
+  const currentUserRole = store.state.role;
+
+  const requiresLandlord = to.matched.some(record => record.meta.requiresRole === 'landlord');
+  const requiresTenant = to.matched.some(record => record.meta.requiresRole === 'tenant');
+
+  if (requiresLandlord && currentUserRole !== 'landlord') {
+    next({ name: 'LoginOwner' });
+  } else if (requiresTenant && currentUserRole !== 'tenant') {
+    next({ name: 'LoginTenant' });
+  } else {
+    next();
+  }
 });
 
 export default router;

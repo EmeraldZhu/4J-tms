@@ -15,6 +15,7 @@ export const store = createStore({
       user: null,
       isLoading: false, // add loading state
       showLogoutToast: false,
+      isDataLoaded: false,
       role: null,
     };
   },
@@ -27,6 +28,9 @@ export const store = createStore({
     },
     setLoading(state, isLoading) {
       state.isLoading = isLoading; // Add mutation to set loading state
+    },
+    setDataLoaded(state, value) {
+      state.isDataLoaded = value;
     },
     setShowLogoutToast(state, value) {
       state.showLogoutToast = value;
@@ -101,6 +105,8 @@ export const store = createStore({
               const userData = docSnap.data();
               commit('setUser', { uid: user.uid, email: user.email, ...userData });
               commit('setRole', userData.role);
+              commit('setDataLoaded', true);
+              commit('setLoading', false);
             } else {
               // User data does not exist in Firestore
               console.log('No such document!');
