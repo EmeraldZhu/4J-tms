@@ -220,21 +220,44 @@ const deleteProperty = async (property) => {
   console.log('Attempting to delete property:', property.name);
   confirm.require({
     target: event.target,
-    message: `Are you sure you want to delete the property "${property.name}"?`,
+    message: `Are you sure you want to delete the property "${property.name}" and all associated units and tenants?`,
     acceptLabel: 'Yes',
     rejectLabel: 'No',
     icon: 'pi pi-exclamation-triangle',
     accept: async () => {
       try {
+        // Step 1: Delete the property itself
         await deleteDoc(doc(db, 'properties', property.id));
+        
+        // Step 2: Delete all units associated with the property
+        const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', property.id));
+        const unitsSnapshot = await getDocs(unitsQuery);
+        for (const unitDoc of unitsSnapshot.docs) {
+          // Optional Step 3: If tenants are directly associated with units
+          const tenantsQuery = query(collection(db, 'tenants'), where('unitId', '==', unitDoc.id));
+          const tenantsSnapshot = await getDocs(tenantsQuery);
+          for (const tenantDoc of tenantsSnapshot.docs) {
+            // Delete each tenant
+            await deleteDoc(doc(db, 'tenants', tenantDoc.id));
+          }
+
+          // Delete the unit after all its tenants have been deleted
+          await deleteDoc(doc(db, 'units', unitDoc.id));
+        }
+
+        // Update local state to reflect deletion
         properties.value = properties.value.filter(p => p.id !== property.id);
-        toast.add({ severity: 'success', summary: 'Delete Successful', detail: `Property "${property.name}" has been deleted.`, life: 3000 });
+        // Optionally, trigger refresh of units and tenants in your UI, if needed
+
+        toast.add({ severity: 'success', summary: 'Delete Successful', detail: `Property "${property.name}" and all associated units and tenants have been deleted.`, life: 3000 });
       } catch (error) {
-        toast.add({ severity: 'error', summary: 'Delete Failed', detail: 'Failed to delete property.', life: 3000 });
+        console.error("Error during deletion: ", error);
+        toast.add({ severity: 'error', summary: 'Delete Failed', detail: 'Failed to delete property and its associated units and tenants.', life: 3000 });
       }
     }
   });
 };
+
 
 const deleteUnit = async (unit) => {
   console.log('Attempting to delete unit:', unit.propertyUnitName.label);
