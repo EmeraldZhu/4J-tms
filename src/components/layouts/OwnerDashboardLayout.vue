@@ -84,8 +84,8 @@ const user = computed(() => {
 });
 
 const menuItems = ref([
-  { label: 'Dashboard', to: '/owner/dashboard', icon: 'pi pi-fw pi-th-large' },
-  { label: 'Properties', to: '/owner', icon: 'pi pi-fw pi-building' },
+  { label: 'Dashboard', to: '/owner', icon: 'pi pi-fw pi-th-large' },
+  { label: 'Properties', to: '/owner/properties', icon: 'pi pi-fw pi-building' },
   { label: 'Tenants', to: '/owner/tenants', icon: 'pi pi-fw pi-users' },
   { label: 'Invitations', to: '/owner/invitations', icon: 'pi pi-fw pi-envelope' },
   { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-inbox' },

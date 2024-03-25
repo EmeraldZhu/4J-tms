@@ -38,12 +38,12 @@ const routes = [
     component: OwnerDashboardLayout,
     children: [
       {
-        path: '',
+        path: 'properties',
         name: 'OwnerProperties',
         component: Properties,
       },
       {
-        path: 'dashboard',
+        path: '',
         name: 'OwnerDashboard',
         component: OwnerDashboard,
       },
