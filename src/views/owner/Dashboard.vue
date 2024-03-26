@@ -89,7 +89,7 @@
     <div class="col-6 border-round">
       <h3>Your Properties</h3>
       <div class="properties-datatable">
-        <DataTable :value="properties" :rows="5" paginator ref="propertiesTable">
+        <DataTable :value="properties" :rows="5" paginator ref="propertiesTable" tableStyle="min-width: 50rem">
           <!-- Define your columns here -->
           <template #paginatorend>
             <Button type="button" icon="pi pi-download" text @click="exportPropertyData" />
@@ -145,7 +145,7 @@
       </div>
       <br>
       <div class="units-datatable">
-        <DataTable :value="units" paginator :rows="5" ref="unitsTable">
+        <DataTable :value="units" paginator :rows="5" ref="unitsTable" tableStyle="min-width: 50rem">
           <!-- Define your columns here -->
           <template #paginatorend>
             <Button type="button" icon="pi pi-download" text @click="exportUnitsData" />
