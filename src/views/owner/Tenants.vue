@@ -134,6 +134,7 @@
                                 <Button type="button" icon="pi pi-download" text @click="exportTenantsData" />
                         </template>
                         <Column field="fullNames" header="Name"></Column>
+                        <Column field="email" header="Email"></Column>
                         <Column field="idNumber" header="ID Number"></Column>
                         <Column field="propertyId.label" header="Property"></Column>
                         <Column field="unitId.label" header="Unit"></Column>
