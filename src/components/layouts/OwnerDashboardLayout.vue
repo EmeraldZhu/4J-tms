@@ -74,7 +74,7 @@ const menuItems = ref([
   { label: 'Tenants', to: '/owner/tenants', icon: 'pi pi-fw pi-users' },
   { label: 'Invitations', to: '/owner/invitations', icon: 'pi pi-fw pi-envelope' },
   { label: 'Notice Board', to: '/owner/notice-board', icon: 'pi pi-fw pi-inbox' },
-  { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-ticket' },
+  { label: 'Maintenance Tickets', to: '/owner/maintenance', icon: 'pi pi-fw pi-cog' },
   // ... other menu items
 ]);
 
