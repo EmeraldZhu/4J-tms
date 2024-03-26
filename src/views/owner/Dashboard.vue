@@ -89,8 +89,11 @@
     <div class="col-6 border-round">
       <h3>Your Properties</h3>
       <div class="properties-datatable">
-        <DataTable :value="properties">
+        <DataTable :value="properties" :rows="5" paginator ref="propertiesTable">
           <!-- Define your columns here -->
+          <template #paginatorend>
+            <Button type="button" icon="pi pi-download" text @click="exportPropertyData" />
+          </template>
           <Column field="media" header="Image">
             <template #body="slotProps">
               <img :src="slotProps.data.media" alt="Property Image" style="width: 50px; height: 50px;">
@@ -142,8 +145,11 @@
       </div>
       <br>
       <div class="units-datatable">
-        <DataTable :value="units">
+        <DataTable :value="units" paginator :rows="5" ref="unitsTable">
           <!-- Define your columns here -->
+          <template #paginatorend>
+            <Button type="button" icon="pi pi-download" text @click="exportUnitsData" />
+          </template>
           <Column field="propertyName.label" header="Property Name"></Column>
           <Column field="propertyUnitName.label" header="Unit Name"></Column>
           <Column field="unitType.label" header="Unit Type"></Column>
@@ -228,7 +234,7 @@ const deleteProperty = async (property) => {
       try {
         // Step 1: Delete the property itself
         await deleteDoc(doc(db, 'properties', property.id));
-        
+
         // Step 2: Delete all units associated with the property
         const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', property.id));
         const unitsSnapshot = await getDocs(unitsQuery);
@@ -371,6 +377,17 @@ const fetchData = async () => {
 };
 
 onMounted(fetchData);
+
+const propertiesTable = ref(null);
+const unitsTable = ref(null);
+
+const exportPropertyData = () => {
+  propertiesTable.value.exportCSV();
+}
+
+const exportUnitsData = () => {
+  unitsTable.value.exportCSV();
+}
 
 // const fetchVacantUnits = async () => {
 //   // Fetch all units
