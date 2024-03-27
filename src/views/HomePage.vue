@@ -9,7 +9,7 @@
           <ul>
             <li>Post your property online for future tenants to view</li>
             <li>Manage all your tenants in one place</li>
-            <li>Keep track of your tenant's payments</li>
+            <li>Keep track of your tenant's maintenance records</li>
           </ul>
           <Button label="Login" class="p-button-outlined" @click="goToLogin('owner')" />
           <Button label="Register" class="p-button-help" @click="goToRegister('owner')" />
@@ -25,9 +25,9 @@
         <div class="text-content">
           <h2>Are You A Tenant?</h2>
           <ul>
-            <li>Browse through all kinds of properties for rent</li>
+            <li>Submit maintenance tickets</li>
             <li>Contact the Property Owners</li>
-            <li>Keep track of your payments and due dates</li>
+            <!-- <li>Keep track of your payments and due dates</li> -->
           </ul>
           <Button label="Login" class="p-button-outlined" @click="goToLogin('tenant')" />
         </div>
