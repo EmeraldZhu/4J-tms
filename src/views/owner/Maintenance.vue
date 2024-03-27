@@ -75,25 +75,34 @@ const statusOptions = ref([
 ]);
 
 const onRowEditSave = async (event) => {
-    const { data } = event;
-    const docRef = doc(db, 'maintenance', data.id); // Use 'id' to reference the document
-    console.log("Updating document ID:", data.id, "with new status:", data.status);
-    console.log("Updated data object:", data);
-    await updateDoc(docRef, {
-        status: data.status
-    }).then(() => {
-        toast.add({severity:'success', summary: 'Success', detail: 'Ticket updated', life: 3000});
+    console.log("onRowEditSave triggered with event:", event);
 
-        // Optimistically update the local state to reflect the change
-        const index = tickets.value.findIndex(ticket => ticket.id === data.id);
+    // Assuming `newData` contains the updated status, let's use that if available
+    const updatedData = event.newData ? JSON.parse(JSON.stringify(event.newData)) : JSON.parse(JSON.stringify(event.data));
+    console.log("Using updated data for Firestore and UI update:", updatedData);
+
+    const docRef = doc(db, 'maintenance', updatedData.id);
+    console.log("Attempting to update document ID:", updatedData.id, "with new status:", updatedData.status);
+
+    try {
+        await updateDoc(docRef, {
+            status: updatedData.status
+        });
+        console.log(`Document ID: ${updatedData.id} successfully updated in Firestore with status: ${updatedData.status}`);
+
+        const index = tickets.value.findIndex(ticket => ticket.id === updatedData.id);
         if (index !== -1) {
-            tickets.value[index].status = data.status;
-            // Trigger reactivity if needed
+            tickets.value[index] = { ...tickets.value[index], ...updatedData };
             tickets.value = [...tickets.value];
+            console.log("Local state updated successfully for ticket ID:", updatedData.id);
+        } else {
+            console.log("Failed to find ticket in local state for ID:", updatedData.id);
         }
-    }).catch((error) => {
-        console.error("Error updating document: ", error);
-    });
+    } catch (error) {
+        console.error("Error updating document in Firestore: ", error);
+    }
+
+    console.log("Current state of tickets after update attempt:", JSON.parse(JSON.stringify(tickets.value)));
 };
 
 const maintenanceTable = ref(null);
