@@ -15,6 +15,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
@@ -26,6 +27,7 @@ const toast = useToast();
 const tenantEmail = ref('');
 const auth = getAuth();
 const db = getFirestore();
+const router = useRouter();
 
 // Function to generate a secure temporary password
 function generateTempPassword(length = 10) {
@@ -68,7 +70,11 @@ const sendInvitation = async () => {
       });
     });
 
-    toast.add({severity:'success', summary:'Invitation Sent', detail:'Tenant invitation sent successfully and account linked.', life: 3000});
+    toast.add({severity:'info', summary:'Session Refresh', detail:'For security reasons, you will be redirected to login again.', life: 5000});
+    toast.add({severity:'success', summary:'Invitation Sent', detail:'Tenant invitation has been successfully sent. You will be redirected to the login page shortly to ensure the security of your session.', life: 5000});
+    setTimeout(() => {
+      router.push('/login/owner');
+    }, 5000);
   } catch (error) {
     console.error("Error sending invitation or linking account::", error);
     toast.add({severity:'error', summary:'Error', detail:`Failed to send invitation: ${error.message}`, life: 3000});
