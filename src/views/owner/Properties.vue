@@ -13,7 +13,7 @@
           <StepperPanel header="Property Name">
             <template #header="{ index, clickCallback }">
               <button class="bg-transparent border-none inline-flex flex-column gap-2" @click="clickCallback">
-                <span :class="['border-round border-2 w-3rem h-3rem inline-flex align-items-center justify-content-center', { 'bg-primary border-primary': index <= active, 'surface-border': index > active }]">
+                <span :class="['border-round border-2 w-3rem h-3rem inline-flex align-items-center justify-content-center', { 'bg-primary border-primary': index <= activeIndex, 'surface-border': index > activeIndex }]">
                   <i class="pi pi-building" />
                 </span>
               </button>
