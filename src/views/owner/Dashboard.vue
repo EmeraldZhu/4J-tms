@@ -38,7 +38,7 @@
           Average Rent Price
         </template>
         <template #content>
-          <h3>{{ avgRentPrice | currency }}</h3>
+          <h3>{{ formatCurrency(avgRentPrice) }}</h3>
         </template>
       </Card>
 
@@ -404,4 +404,11 @@ const exportUnitsData = () => {
 // };
 
 // onMounted(fetchVacantUnits);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'KES'
+  }).format(value);
+};
 </script>
