@@ -78,6 +78,7 @@ function goToRegister(role) {
 
 .section-content {
   display: flex;
+  flex-wrap: wrap; /* Allows the flex items to wrap as needed */
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
@@ -86,13 +87,18 @@ function goToRegister(role) {
   border-radius: 8px;
 }
 
-.section-content .text-content {
-  flex: 1;
+.section-content .text-content,
+.section-content .image-content {
+  flex: 1 0 100%; /* Grow: 1, Shrink: 0, Basis: 100% */
+  max-width: 100%; /* Prevents flex items from growing beyond 100% */
 }
 
-.section-content .image-content {
-  flex: 1;
-  /* Add styles for your images */
+@media (min-width: 640px) {
+  .section-content .text-content,
+  .section-content .image-content {
+    flex: 1; /* Allows the flex items to grow and shrink as needed */
+    max-width: 50%; /* Allows the flex items to occupy half of the container's width */
+  }
 }
 
 .section-content ul {
@@ -108,7 +114,6 @@ function goToRegister(role) {
   margin-top: 0;
 }
 
-/* Adjust Button styles as needed */
 .p-button {
   margin-right: 0.5rem;
 }
@@ -118,6 +123,4 @@ function goToRegister(role) {
   border-color: #9c27b0;
   color: #ffffff;
 }
-
-/* Add more styles as needed for your layout and theming */
 </style>
