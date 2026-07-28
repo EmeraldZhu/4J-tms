@@ -96,7 +96,6 @@ const registerLandlord = async () => {
 
 const onFileSelected = (event) => {
   landlord.value.profileImage = event.files[0]; // event.files is an array of the selected files
-  console.log('File selected:', landlord.value.profileImage); // Log the selected file
 };
 </script>
 

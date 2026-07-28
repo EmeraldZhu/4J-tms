@@ -54,8 +54,9 @@ const login = async () => {
     }, 1500); // Waits a bit longer than the toast life to navigate
   } catch (error) {
     console.error('Login error:', error.message);
-    // Display an error toast message
-    toast.add({ severity: 'error', summary: 'Login Failed', detail: error.message, life: 5000 });
+    // Deliberately generic: surfacing the raw Firebase error tells an attacker
+    // whether an address is registered.
+    toast.add({ severity: 'error', summary: 'Login Failed', detail: 'Invalid email or password.', life: 5000 });
   }
 };
 

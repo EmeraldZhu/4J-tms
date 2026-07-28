@@ -302,11 +302,16 @@ const propertyUnitName = ref('');
 // Reactive ref to store the IDs of the occupied units
 const occupiedUnitIds = ref([]);
 
-// Fetch all tenant-occupied unit IDs when the component is mounted
+// Fetch this landlord's tenant-occupied unit IDs when the component is mounted.
+// Scoped to createdBy: an unfiltered read would pull every tenant record in the
+// system, including other landlords' tenants and their ID numbers.
 onMounted(async () => {
-        const tenantQuery = query(collection(db, 'tenants'));
+        if (!user) return;
+        const tenantQuery = query(collection(db, 'tenants'), where('createdBy', '==', user.uid));
         const tenantSnapshot = await getDocs(tenantQuery);
-        occupiedUnitIds.value = tenantSnapshot.docs.map(tenantDoc => tenantDoc.data().unitId.value);
+        occupiedUnitIds.value = tenantSnapshot.docs
+                .map(tenantDoc => tenantDoc.data().unitId?.value)
+                .filter(Boolean);
 });
 
 // Watcher to fetch unit names when a property is selected and filter out occupied units
@@ -315,7 +320,7 @@ watch(propertyName, async (newValueObj) => {
         console.log("Selected property ID:", newValue);
 
         if (newValue) {
-                const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', newValue));
+                const unitsQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid), where('propertyName.value', '==', newValue));
                 const unitSnapshot = await getDocs(unitsQuery);
 
                 // Filter out units that have already been assigned
@@ -411,7 +416,7 @@ const fetchTenantsForProperty = async (propertyId) => {
                 return;
         }
 
-        const q = query(collection(db, 'tenants'), where('propertyId.value', '==', propertyId));
+        const q = query(collection(db, 'tenants'), where('createdBy', '==', user.uid), where('propertyId.value', '==', propertyId));
         try {
                 const querySnapshot = await getDocs(q);
                 //const fetchedTenants = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -428,7 +433,6 @@ const fetchTenantsForProperty = async (propertyId) => {
                                 id: doc.id // include the document ID
                         };
                 });
-                console.log("Tenants fetched:", fetchedTenants);
                 tenants.value = fetchedTenants;
         } catch (error) {
                 console.error("Error fetching tenants:", error);

@@ -32,9 +32,7 @@ import { useToast } from 'primevue/usetoast'; // Import useToast hook
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import Button from 'primevue/button';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
-const auth = getAuth();
 const store = useStore();
 const router = useRouter();
 const toast = useToast(); // Instantiate the toast
@@ -46,18 +44,19 @@ const credentials = ref({
 
 const login = async () => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, credentials.value.email, credentials.value.password);
+    // loginLandlord verifies the account actually holds the landlord role and
+    // signs the session back out if it does not.
+    await store.dispatch('loginLandlord', credentials.value);
     // Display a success toast message
     toast.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome!', life: 3000 });
-    // Assuming you have a Vuex mutation to set the user
-    store.commit('setUser', userCredential.user);
     setTimeout(() => {
       router.push('/owner');
     }, 1500); // Waits a bit longer than the toast life to navigate
   } catch (error) {
     console.error('Login error:', error.message);
-    // Display an error toast message
-    toast.add({ severity: 'error', summary: 'Login Failed', detail: error.message, life: 5000 });
+    // Deliberately generic: surfacing the raw Firebase error tells an attacker
+    // whether an address is registered.
+    toast.add({ severity: 'error', summary: 'Login Failed', detail: 'Invalid email or password.', life: 5000 });
   }
 };
 

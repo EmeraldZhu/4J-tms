@@ -8,41 +8,46 @@
         </div>
         <br>
         <div class="p-field p-col-12">
-            <Button label="Send Invitation" @click="sendInvitation" />
+            <Button label="Send Invitation" @click="sendInvitation" :disabled="isSending" />
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
-import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { getFirestore, query, collection, where, getDocs, updateDoc, doc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getFirestore, query, collection, where, getDocs, updateDoc, setDoc, doc } from "firebase/firestore";
+import { provisionTenantAccount } from '../../services/tenant-provisioning';
 
 const toast = useToast();
 const tenantEmail = ref('');
 const auth = getAuth();
 const db = getFirestore();
-const router = useRouter();
-
-// Function to generate a secure temporary password
-function generateTempPassword(length = 10) {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
-  let retVal = "";
-  for (let i = 0, n = charset.length; i < length; ++i) {
-    retVal += charset.charAt(Math.floor(Math.random() * n));
-  }
-  return retVal;
-}
+const isSending = ref(false);
 
 const sendInvitation = async () => {
+  if (isSending.value) return;
+
+  const landlord = auth.currentUser;
+  if (!landlord) {
+    toast.add({severity:'error', summary:'Error', detail:'Your session has expired. Please sign in again.', life: 3000});
+    return;
+  }
+
+  isSending.value = true;
   try {
-    // Check if the email exists in the tenants collection
-    const tenantsQuery = query(collection(db, "tenants"), where("email", "==", tenantEmail.value));
+    // Scope the lookup to this landlord's own tenants. Without the createdBy
+    // filter a landlord could invite — and thereby take over — a tenant record
+    // belonging to somebody else.
+    const tenantsQuery = query(
+      collection(db, "tenants"),
+      where("createdBy", "==", landlord.uid),
+      where("email", "==", tenantEmail.value)
+    );
     const querySnapshot = await getDocs(tenantsQuery);
 
     if (querySnapshot.empty) {
@@ -51,33 +56,36 @@ const sendInvitation = async () => {
       return; // Exit the function if no matching tenant is found
     }
 
-    // If a tenant is found, proceed with account creation and password reset email
-    let uid;
-    querySnapshot.forEach((doc) => {
-      // Proceed with the first match; consider logic adjustments for multiple matches
-      uid = doc.id; // Optionally store Firestore tenant document ID if needed
+    const tenantDoc = querySnapshot.docs[0];
+    if (tenantDoc.data().authUid) {
+      toast.add({severity:'warn', summary:'Already Invited', detail:'This tenant already has an account.', life: 3000});
+      return;
+    }
+
+    // Runs on a secondary Firebase app, so the landlord stays signed in.
+    const tenantUid = await provisionTenantAccount(tenantEmail.value);
+
+    // Link the tenant's Firestore record to their new auth account...
+    await updateDoc(doc(db, "tenants", tenantDoc.id), {
+      authUid: tenantUid,
+      role: 'tenant'
     });
 
-    const tempPassword = generateTempPassword(12); // Generate a strong temporary password
-    const userCredential = await createUserWithEmailAndPassword(auth, tenantEmail.value, tempPassword);
-    await sendPasswordResetEmail(auth, tenantEmail.value);
-
-    // Optionally link the tenant's Firestore record with their Firebase Auth UID here
-    querySnapshot.forEach(async (docSnapshot) => {
-      await updateDoc(doc(db, "tenants", docSnapshot.id), {
-        authUid: userCredential.user.uid,
-        role: 'tenant'
-      });
+    // ...and record the uid -> landlord mapping the security rules rely on to
+    // scope notice board reads.
+    await setDoc(doc(db, "tenantProfiles", tenantUid), {
+      landlordId: landlord.uid,
+      tenantDocId: tenantDoc.id,
+      role: 'tenant'
     });
 
-    toast.add({severity:'info', summary:'Session Refresh', detail:'For security reasons, you will be redirected to login again.', life: 5000});
-    toast.add({severity:'success', summary:'Invitation Sent', detail:'Tenant invitation has been successfully sent. You will be redirected to the login page shortly to ensure the security of your session.', life: 5000});
-    setTimeout(() => {
-      router.push('/login/owner');
-    }, 5000);
+    toast.add({severity:'success', summary:'Invitation Sent', detail:'The tenant has been emailed a link to set their password.', life: 5000});
+    tenantEmail.value = '';
   } catch (error) {
-    console.error("Error sending invitation or linking account::", error);
-    toast.add({severity:'error', summary:'Error', detail:`Failed to send invitation: ${error.message}`, life: 3000});
+    console.error("Error sending invitation or linking account:", error);
+    toast.add({severity:'error', summary:'Error', detail:'Failed to send invitation. Please try again.', life: 3000});
+  } finally {
+    isSending.value = false;
   }
 };
 </script>

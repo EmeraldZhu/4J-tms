@@ -36,8 +36,7 @@ const sendResetLink = async () => {
   try {
     await sendPasswordResetEmail(auth, email.value);
     // Display a success toast message
-    toast.add({ severity: 'success', summary: 'Success', detail: 'Reset link sent to your email address.', life: 3000 });
-    console.log('Reset link sent to:', email.value);
+    toast.add({ severity: 'success', summary: 'Check your inbox', detail: 'If an account exists for that address, a reset link has been sent.', life: 3000 });
     // Optionally navigate the user to the login page after showing the message
     setTimeout(() => {
       router.push('/login/tenant');
@@ -45,7 +44,7 @@ const sendResetLink = async () => {
   } catch (error) {
     console.error('Error sending reset email:', error.message);
     // Display an error toast message
-    toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 5000 });
+    toast.add({ severity: 'success', summary: 'Check your inbox', detail: 'If an account exists for that address, a reset link has been sent.', life: 5000 });
   }
 };
 </script>

@@ -1,6 +1,10 @@
 import { initializeApp } from "firebase/app";
 
-const firebaseConfig = {
+// NOTE: a Firebase web config is public by design — it identifies the project,
+// it does not authorise anything. Access control comes from firestore.rules and
+// storage.rules. Do lock the browser key down to this project's domains under
+// Google Cloud Console > APIs & Services > Credentials, and enable App Check.
+export const firebaseConfig = {
   apiKey: "AIzaSyAyK6EtnNM-YqHDaktclq9RulNSjoYehT8",
   authDomain: "four-j-tms.firebaseapp.com",
   projectId: "four-j-tms",

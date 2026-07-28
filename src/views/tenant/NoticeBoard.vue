@@ -15,17 +15,24 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import { getFirestore, collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
 const db = getFirestore();
+const store = useStore();
 
 const messages = ref([]);
 
 onMounted(async () => {
-        const q = query(collection(db, 'noticeboard'));
+        // A tenant's own record stores the landlord who created it. Scoping by it
+        // is what keeps this view from listing every landlord's notices.
+        const landlordId = store.state.user?.createdBy;
+        if (!landlordId) return;
+
+        const q = query(collection(db, 'noticeboard'), where('landlordId', '==', landlordId));
         const querySnapshot = await getDocs(q);
         messages.value = querySnapshot.docs.map(doc => {
                 const data = doc.data();

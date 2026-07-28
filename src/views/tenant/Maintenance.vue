@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
@@ -83,21 +83,29 @@ const categories = [
     { name: 'Other' },
 ];
 
-watchEffect(() => {
-    const userData = store.state.user;
-    if (userData) {
-        name = userData.fullNames;
-    }
-});
+// `name` was previously assigned without declaration, which silently resolved to
+// the global `window.name` — a value any site that navigates here can set, so a
+// ticket's author name was attacker-controllable. Read it from the store instead.
+const tenantName = computed(() => store.state.user?.fullNames ?? '');
+// A tenant's own record stores the landlord who created it.
+const landlordId = computed(() => store.state.user?.createdBy ?? null);
 
 const submitTicket = async () => {
+    if (!landlordId.value) {
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Your account is not linked to a property yet.', life: 3000 });
+        return;
+    }
+
     const newTicket = {
         ...ticket.value,
         dateCreated: new Date(),
         createdBy: {
-            name: name,
+            name: tenantName.value,
             uid: auth.currentUser.uid,
         },
+        // Scopes the ticket to the tenant's landlord so it is visible to them and
+        // to nobody else.
+        landlordId: landlordId.value,
         status: 'Open',
     };
 

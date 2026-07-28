@@ -35,9 +35,11 @@ import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
+import { getAuth } from "firebase/auth";
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import { useStore } from 'vuex';
 
+const auth = getAuth();
 const db = getFirestore();
 const store = useStore();
 
@@ -46,7 +48,12 @@ const toast = useToast();
 const tickets = ref([]);
 
 onMounted(async () => {
-        const q = query(collection(db, 'maintenance'));
+        const landlord = auth.currentUser;
+        if (!landlord) return;
+
+        // Scoped to this landlord. The previous unfiltered read returned every
+        // maintenance ticket raised by every tenant of every landlord.
+        const q = query(collection(db, 'maintenance'), where('landlordId', '==', landlord.uid));
         const querySnapshot = await getDocs(q);
         tickets.value = querySnapshot.docs.map(doc => {
                 const data = doc.data();
@@ -75,11 +82,9 @@ const statusOptions = ref([
 ]);
 
 const onRowEditSave = async (event) => {
-    console.log("onRowEditSave triggered with event:", event);
 
     // Assuming `newData` contains the updated status, let's use that if available
     const updatedData = event.newData ? JSON.parse(JSON.stringify(event.newData)) : JSON.parse(JSON.stringify(event.data));
-    console.log("Using updated data for Firestore and UI update:", updatedData);
 
     const docRef = doc(db, 'maintenance', updatedData.id);
     console.log("Attempting to update document ID:", updatedData.id, "with new status:", updatedData.status);
@@ -102,7 +107,6 @@ const onRowEditSave = async (event) => {
         console.error("Error updating document in Firestore: ", error);
     }
 
-    console.log("Current state of tickets after update attempt:", JSON.parse(JSON.stringify(tickets.value)));
 };
 
 const maintenanceTable = ref(null);

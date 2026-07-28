@@ -1,0 +1,159 @@
+rules_version = '2';
+
+// 4J-TMS Firestore security rules.
+//
+// Threat model: every query in this app runs from the browser with the caller's
+// own credentials, so these rules — not the client code — are the only real
+// access control. Nothing here may depend on the UI having filtered a query
+// "correctly"; each document must be independently provable as readable.
+//
+// Data model this encodes:
+//   landlords/{uid}          doc id IS the landlord's auth uid
+//   tenantProfiles/{uid}     doc id IS the tenant's auth uid; maps uid -> landlordId
+//   properties/{id}          createdBy = landlord uid
+//   units/{id}               createdBy = landlord uid
+//   tenants/{id}             createdBy = landlord uid, authUid = tenant uid (once invited)
+//   maintenance/{id}         landlordId = landlord uid, createdBy.uid = tenant uid
+//   noticeboard/{id}         landlordId = landlord uid, createdBy.uid = landlord uid
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    // A landlord is anyone holding a landlords/{uid} document.
+    function isLandlord() {
+      return signedIn() && exists(/databases/$(database)/documents/landlords/$(uid()));
+    }
+
+    function tenantProfile() {
+      return get(/databases/$(database)/documents/tenantProfiles/$(uid())).data;
+    }
+
+    function isTenant() {
+      return signedIn() && exists(/databases/$(database)/documents/tenantProfiles/$(uid()));
+    }
+
+    // The landlord this tenant belongs to. Used to scope broadcast reads.
+    function myLandlordId() {
+      return tenantProfile().landlordId;
+    }
+
+    function ownsExisting() {
+      return signedIn() && resource.data.createdBy == uid();
+    }
+
+    function ownsIncoming() {
+      return signedIn() && request.resource.data.createdBy == uid();
+    }
+
+    // ---------------------------------------------------------------------
+    // landlords: a landlord reads and edits only their own profile.
+    // Creation is allowed only for one's own uid, and the role is pinned so a
+    // client cannot self-assign a different one.
+    // ---------------------------------------------------------------------
+    match /landlords/{landlordId} {
+      allow read: if signedIn() && landlordId == uid();
+      allow create: if signedIn()
+                    && landlordId == uid()
+                    && request.resource.data.role == 'landlord';
+      allow update: if signedIn()
+                    && landlordId == uid()
+                    && request.resource.data.role == 'landlord';
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // tenantProfiles: uid -> landlordId index, written when a landlord links a
+    // tenant to an auth account. Tenants may read their own entry only, and may
+    // never write one (that would let anyone claim membership of any landlord).
+    // ---------------------------------------------------------------------
+    match /tenantProfiles/{tenantUid} {
+      allow read: if signedIn() && tenantUid == uid();
+      allow create, update: if isLandlord()
+                            && request.resource.data.landlordId == uid()
+                            && request.resource.data.role == 'tenant';
+      allow delete: if isLandlord() && resource.data.landlordId == uid();
+    }
+
+    // ---------------------------------------------------------------------
+    // properties / units: strictly landlord-owned. createdBy is immutable so an
+    // owner cannot reassign a record to somebody else.
+    // ---------------------------------------------------------------------
+    match /properties/{propertyId} {
+      allow read: if ownsExisting();
+      allow create: if isLandlord() && ownsIncoming();
+      allow update: if ownsExisting() && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if ownsExisting();
+    }
+
+    match /units/{unitId} {
+      allow read: if ownsExisting();
+      allow create: if isLandlord() && ownsIncoming();
+      allow update: if ownsExisting() && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if ownsExisting();
+    }
+
+    // ---------------------------------------------------------------------
+    // tenants: holds PII (national ID, DOB). Readable by the owning landlord,
+    // and by the tenant themselves once their account is linked.
+    // A tenant may not edit their own record — only the landlord may.
+    // ---------------------------------------------------------------------
+    match /tenants/{tenantId} {
+      allow read: if ownsExisting()
+                  || (signedIn() && resource.data.get('authUid', '') == uid());
+      allow create: if isLandlord() && ownsIncoming();
+      allow update: if ownsExisting() && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if ownsExisting();
+    }
+
+    // ---------------------------------------------------------------------
+    // maintenance: raised by a tenant, triaged by their landlord.
+    // Tenants write the ticket but may not set its status on create, and may
+    // not mutate it afterwards; only the landlord moves it through the workflow.
+    // ---------------------------------------------------------------------
+    match /maintenance/{ticketId} {
+      allow read: if (signedIn() && resource.data.landlordId == uid())
+                  || (signedIn() && resource.data.createdBy.uid == uid());
+
+      allow create: if isTenant()
+                    && request.resource.data.createdBy.uid == uid()
+                    && request.resource.data.landlordId == myLandlordId()
+                    && request.resource.data.status == 'Open';
+
+      // Landlord may only advance status; the rest of the ticket is frozen.
+      allow update: if signedIn()
+                    && resource.data.landlordId == uid()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status'])
+                    && request.resource.data.status in ['Open', 'In Progress', 'Closed'];
+
+      allow delete: if signedIn() && resource.data.landlordId == uid();
+    }
+
+    // ---------------------------------------------------------------------
+    // noticeboard: landlord broadcasts to their own tenants only.
+    // ---------------------------------------------------------------------
+    match /noticeboard/{noticeId} {
+      allow read: if (signedIn() && resource.data.landlordId == uid())
+                  || (isTenant() && resource.data.landlordId == myLandlordId());
+
+      allow create: if isLandlord()
+                    && request.resource.data.landlordId == uid()
+                    && request.resource.data.createdBy.uid == uid();
+
+      allow update, delete: if signedIn() && resource.data.landlordId == uid();
+    }
+
+    // Anything not matched above is denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

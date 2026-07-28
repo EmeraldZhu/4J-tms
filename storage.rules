@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// 4J-TMS Cloud Storage security rules.
+//
+// Every upload path is namespaced by the uploader's uid so that one landlord can
+// never read or overwrite another's files — object paths derived from
+// user-supplied names (e.g. a property name) are not unique and must not be
+// used as the ownership boundary.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Uploads must be real images and bounded in size, otherwise the bucket is
+    // free hosting for arbitrary content.
+    function isBoundedImage() {
+      return request.resource.size < 5 * 1024 * 1024
+             && request.resource.contentType.matches('image/.*');
+    }
+
+    // Profile images: written by their owner, readable by any signed-in user
+    // (avatars are shown in the dashboard chrome).
+    match /profileImages/{userId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId) && isBoundedImage();
+    }
+
+    // Property media, namespaced by the owning landlord's uid.
+    match /propertyImages/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId) && isBoundedImage();
+    }
+
+    // Deny everything else, including the legacy unscoped
+    // propertyImages/{propertyName}/... layout.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

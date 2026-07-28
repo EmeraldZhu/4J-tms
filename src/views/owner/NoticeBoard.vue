@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
@@ -47,21 +47,28 @@ const noticeboard = ref({
         description: '',
 });
 
-watchEffect(() => {
+// `name` was previously assigned without declaration, which silently resolved to
+// the global `window.name` — a value any site that navigates here can set, so a
+// notice's author name was attacker-controllable. Read it from the store instead.
+const landlordName = computed(() => {
         const userData = store.state.user;
-        if (userData) {
-                name = userData.firstName + ' ' + userData.lastName;
-        }
+        if (!userData) return '';
+        return `${userData.firstName ?? ''} ${userData.lastName ?? ''}`.trim();
 });
 
 const submitMessage = async () => {
+        const landlord = auth.currentUser;
+        if (!landlord) return;
+
         const newMessage = {
                 ...noticeboard.value,
                 dateCreated: new Date(),
                 createdBy: {
-                        name: name,
-                        uid: auth.currentUser.uid,
+                        name: landlordName.value,
+                        uid: landlord.uid,
                 },
+                // Scopes the notice to this landlord's tenants.
+                landlordId: landlord.uid,
         };
 
         try {
@@ -81,7 +88,8 @@ const submitMessage = async () => {
 const messages = ref([]);
 
 onMounted(async () => {
-        const q = query(collection(db, 'noticeboard'), where('createdBy.uid', '==', auth.currentUser.uid));
+        // Filter on landlordId to match what the security rules authorise.
+        const q = query(collection(db, 'noticeboard'), where('landlordId', '==', auth.currentUser.uid));
         const querySnapshot = await getDocs(q);
         messages.value = querySnapshot.docs.map(doc => {
                 const data = doc.data();

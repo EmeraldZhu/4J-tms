@@ -211,7 +211,7 @@ const fetchUnits = async (propertyId) => {
     units.value = [];
     return;
   }
-  const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', propertyId));
+  const unitsQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid), where('propertyName.value', '==', propertyId));
   const querySnapshot = await getDocs(unitsQuery);
   units.value = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 };
@@ -236,11 +236,11 @@ const deleteProperty = async (property) => {
         await deleteDoc(doc(db, 'properties', property.id));
 
         // Step 2: Delete all units associated with the property
-        const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', property.id));
+        const unitsQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid), where('propertyName.value', '==', property.id));
         const unitsSnapshot = await getDocs(unitsQuery);
         for (const unitDoc of unitsSnapshot.docs) {
           // Optional Step 3: If tenants are directly associated with units
-          const tenantsQuery = query(collection(db, 'tenants'), where('unitId', '==', unitDoc.id));
+          const tenantsQuery = query(collection(db, 'tenants'), where('createdBy', '==', user.uid), where('unitId', '==', unitDoc.id));
           const tenantsSnapshot = await getDocs(tenantsQuery);
           for (const tenantDoc of tenantsSnapshot.docs) {
             // Delete each tenant

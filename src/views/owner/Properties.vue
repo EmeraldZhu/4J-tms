@@ -315,14 +315,21 @@ const submitProperty = async () => {
     return;
   }
 
+  if (!user) {
+    toast.add({severity: 'error', summary: 'Error', detail: 'Your session has expired. Please sign in again.', life: 3000});
+    return;
+  }
+
   isSubmitting.value = true;
 
   let mediaUrl = '';
   // Check if a media file was provided
   if (property.value.media) {
     try {
-      // Create a storage reference
-      const mediaRef = storageRef(storage, `propertyImages/${property.value.name}/${property.value.media.name}`);
+      // Namespace uploads by the owning landlord's uid. Keying on the
+      // user-supplied property name meant two landlords using the same property
+      // name shared a path, letting one overwrite and read the other's media.
+      const mediaRef = storageRef(storage, `propertyImages/${user.uid}/${property.value.name}/${property.value.media.name}`);
       // Upload the media file
       const snapshot = await uploadBytes(mediaRef, property.value.media);
       // Get the download URL
@@ -465,7 +472,7 @@ watch(propertyName, async (newVal) => {
     const allUnitNames = propertyData.unitNames.split(',').map(name => name.trim());
 
     // Fetch units already added for this property, considering the structure of propertyName and propertyUnitName
-    const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', documentId));
+    const unitsQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid), where('propertyName.value', '==', documentId));
     const querySnapshot = await getDocs(unitsQuery);
     // Extract used unit names considering propertyUnitName is an object
     const usedUnitNames = querySnapshot.docs.map(doc => doc.data().propertyUnitName.value);
@@ -501,7 +508,7 @@ const refreshUnitNames = async () => {
     const allUnitNames = propertyData.unitNames.split(',').map(name => name.trim());
 
     // Fetch units already added for this property
-    const unitsQuery = query(collection(db, 'units'), where('propertyName.value', '==', documentId));
+    const unitsQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid), where('propertyName.value', '==', documentId));
     const querySnapshot = await getDocs(unitsQuery);
     const usedUnitNames = querySnapshot.docs.map(doc => doc.data().propertyUnitName.value);
 
@@ -520,7 +527,7 @@ const addUnit = async () => {
   isSubmitting.value = true;
 
   // Perform the application-level check to ensure the selected unit name hasn't been used
-  const unitNameQuery = query(collection(db, 'units'), where('propertyName.value', '==', propertyName.value.value), where('propertyUnitName.value', '==', propertyUnitName.value.value));
+  const unitNameQuery = query(collection(db, 'units'), where('createdBy', '==', user.uid), where('propertyName.value', '==', propertyName.value.value), where('propertyUnitName.value', '==', propertyUnitName.value.value));
   const querySnapshot = await getDocs(unitNameQuery);
 
   if (!querySnapshot.empty) {

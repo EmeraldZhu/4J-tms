@@ -1,5 +1,4 @@
 import { createStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, collection, where, getDocs, query } from 'firebase/firestore';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -9,13 +8,41 @@ const auth = getAuth();
 const db = getFirestore();
 const storage = getStorage(); // Initialize Firebase Storage
 
+// Resolves once the first onAuthStateChanged callback has run and the user's
+// profile (and therefore their role) has been loaded. Route guards await this so
+// that a refresh on a protected URL cannot slip through while auth is still unknown.
+let resolveAuthReady;
+const authReady = new Promise((resolve) => {
+  resolveAuthReady = resolve;
+});
+
+// Resolve a signed-in Firebase user to their application profile and role.
+// The tenant lookup keys off authUid rather than email, so it matches what the
+// Firestore rules are able to prove about the caller.
+async function loadProfile(user) {
+  const landlordSnap = await getDoc(doc(db, 'landlords', user.uid));
+  if (landlordSnap.exists()) {
+    return { ...landlordSnap.data(), role: 'landlord', docId: landlordSnap.id };
+  }
+
+  const tenantsQuery = query(collection(db, 'tenants'), where('authUid', '==', user.uid));
+  const tenantSnapshot = await getDocs(tenantsQuery);
+  if (!tenantSnapshot.empty) {
+    const tenantDoc = tenantSnapshot.docs[0];
+    return { ...tenantDoc.data(), role: 'tenant', docId: tenantDoc.id };
+  }
+
+  return null;
+}
+
 export const store = createStore({
   state() {
     return {
       user: null,
-      isLoading: false, // add loading state
+      isLoading: true, // unknown until the first auth callback resolves
       showLogoutToast: false,
       role: null,
+      authInitialized: false,
     };
   },
   mutations: {
@@ -31,14 +58,17 @@ export const store = createStore({
     setShowLogoutToast(state, value) {
       state.showLogoutToast = value;
     },
+    setAuthInitialized(state, value) {
+      state.authInitialized = value;
+    },
   },
   actions: {
     async registerLandlord({ commit }, payload) {
       try {
-        console.log(payload); // Log the payload
-        // Destructure the payload to extract the image file and other user details
+        // Destructure the payload to extract the image file and other user details.
+        // password is pulled out here and is never logged or persisted.
         const { email, password, profileImage, ...userDetails } = payload;
-        
+
         // Create user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -49,16 +79,9 @@ export const store = createStore({
           // Create a storage reference
           const imageRef = storageRef(storage, `profileImages/${user.uid}/${profileImage.name}`);
           // Upload the image
-          const snapshot = await uploadBytes(imageRef, profileImage).catch((error) => {
-            console.error('Upload error:', error.message);
-            throw error;
-          });
+          const snapshot = await uploadBytes(imageRef, profileImage);
           // Get the download URL
-          imageUrl = await getDownloadURL(snapshot.ref).catch((error) => {
-            console.error('Download URL error:', error.message);
-            throw error;
-          });
-          console.log(imageUrl); // Log the download URL
+          imageUrl = await getDownloadURL(snapshot.ref);
         }
 
         // Combine userDetails with the image URL
@@ -69,85 +92,90 @@ export const store = createStore({
 
         // Commit the user to Vuex state
         commit('setUser', { uid: user.uid, email, ...userData, photoURL: imageUrl });
+        commit('setRole', 'landlord');
       } catch (error) {
         console.error('Registration error:', error.message);
         throw error; // Propagate the error to be handled by the component
       }
     },
-    
-    async fetchUser({ commit }) {
-      commit('setLoading', true); // Set loading state to true before fetching user data
-      try {
-        // Listen for user auth state changes
-        onAuthStateChanged(auth, async (user) => {
+
+    // Registers the single auth listener. Safe to dispatch more than once; later
+    // calls just await the listener that is already in place.
+    fetchUser({ commit, state }) {
+      if (state.authInitialized) return authReady;
+
+      commit('setAuthInitialized', true);
+      onAuthStateChanged(auth, async (user) => {
+        commit('setLoading', true);
+        try {
           if (user) {
-            // Attempt to fetch from landlords collection first
-            let docRef = doc(db, 'landlords', user.uid);
-            let docSnap = await getDoc(docRef);
-
-            if (!docSnap.exists()) {
-              // If not found, attempt to fetch from tenants collection
-              const tenantsQuery = query(collection(db, "tenants"), where("authUid", "==", user.uid));
-              const querySnapshot = await getDocs(tenantsQuery);
-
-              if (!querySnapshot.empty) {
-                // Assuming email uniqueness, we can directly access the first document
-                docSnap = querySnapshot.docs[0];
-              }
-            }
-
-            if (docSnap.exists()) {
-              // User data exists in Firestore, commit to Vuex state
-              const userData = docSnap.data();
-              commit('setUser', { uid: user.uid, email: user.email, ...userData });
-              commit('setRole', userData.role);
+            const profile = await loadProfile(user);
+            if (profile) {
+              commit('setUser', { uid: user.uid, email: user.email, ...profile });
+              commit('setRole', profile.role);
             } else {
-              // User data does not exist in Firestore
-              console.log('No such document!');
+              // Authenticated but with no application profile. Sign out rather than
+              // leaving a half-initialised session that guards would have to reason about.
               commit('setUser', null);
+              commit('setRole', null);
+              await signOut(auth);
             }
           } else {
-            // User is signed out, clear Vuex state
             commit('setUser', null);
+            commit('setRole', null);
           }
-          commit('setLoading', false); // Set loading state to false after fetching user data
-        });
-      } catch (error) {
-        console.error('Fetch user error:', error.message);
-        commit('setLoading', false);
-        throw error;
-      }
+        } catch (error) {
+          console.error('Fetch user error:', error.message);
+          commit('setUser', null);
+          commit('setRole', null);
+        } finally {
+          commit('setLoading', false);
+          resolveAuthReady();
+        }
+      });
+
+      return authReady;
     },
 
-    async loginTenant({ commit }, { email, password }) {
-      console.log('Attempting tenant login with email:', email);
+    // Signs in, then verifies the account actually holds the expected role before
+    // the caller may proceed. Without this check a tenant could sign in at the
+    // landlord login page and be handed the landlord dashboard.
+    async loginWithRole({ commit }, { email, password, expectedRole }) {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+      let profile;
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log('User signed in successfully:', userCredential.user.uid);
-        // The user's email is used to log in, so we use it to fetch the tenant document
-        const tenantsQuery = query(collection(db, "tenants"), where("email", "==", email));
-        const querySnapshot = await getDocs(tenantsQuery);
-        console.log('Fetched tenant document:', querySnapshot.empty);
-    
-        if (!querySnapshot.empty) {
-          const tenantDoc = querySnapshot.docs[0];
-          console.log('Tenant document data:', tenantDoc.data()); // Debugging statement 4
-          commit('setUser', { uid: userCredential.user.uid, email, ...tenantDoc.data() });
-          commit('setRole', tenantDoc.data().role);
-          console.log('User and role committed to Vuex'); // Debugging statement 5
-        } else {
-          throw new Error('No user document found');
-        }
+        profile = await loadProfile(userCredential.user);
       } catch (error) {
-        console.error('Login error:', error);
-        throw error;
+        await signOut(auth);
+        throw new Error('Unable to verify your account. Please try again.');
       }
+
+      if (!profile || profile.role !== expectedRole) {
+        // Drop the session immediately so a wrong-portal login leaves no usable
+        // credentials behind in the tab.
+        await signOut(auth);
+        throw new Error('Invalid email or password.');
+      }
+
+      commit('setUser', { uid: userCredential.user.uid, email: userCredential.user.email, ...profile });
+      commit('setRole', profile.role);
+      return profile;
+    },
+
+    loginTenant({ dispatch }, { email, password }) {
+      return dispatch('loginWithRole', { email, password, expectedRole: 'tenant' });
+    },
+
+    loginLandlord({ dispatch }, { email, password }) {
+      return dispatch('loginWithRole', { email, password, expectedRole: 'landlord' });
     },
 
     async logout({ commit }) {
       try {
         await signOut(auth);
         commit('setUser', null);
+        commit('setRole', null);
         commit('setShowLogoutToast', true); // Set the flag before redirecting
       } catch (error) {
         console.error('Logout error:', error.message);
@@ -159,5 +187,10 @@ export const store = createStore({
     isAuthenticated(state) {
       return !!state.user;
     },
+    role(state) {
+      return state.role;
+    },
   },
 });
+
+export { authReady };
